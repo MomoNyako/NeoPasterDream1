@@ -1,0 +1,83 @@
+{
+  "has_precipitation": true,
+  "temperature": 0.7,
+  "downfall": 0.25,
+  "carvers": {
+    "air": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ]
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "pasterdream:ore_dyedreamquartz",
+      "pasterdream:ore_dyedreamdust",
+      "pasterdream:ore_amber_candy"
+    ],
+    [],
+    [],
+    [
+      "pasterdream:patch_dyedream_grass",
+      "pasterdream:patch_dyedream_lily_pad",
+      "pasterdream:patch_dyedream_lotus",
+      "pasterdream:patch_dyedream_seagrass"
+    ],
+    []
+  ],
+  "effects": {
+    "foliage_color": -22035,
+    "grass_color": -21522,
+    "sky_color": 7972607,
+    "fog_color": 12638463,
+    "water_color": 4159204,
+    "water_fog_color": 329011
+  },
+  "spawners": {
+    "monster": [],
+    "creature": [
+      {
+        "type": "allay",
+        "weight": 30,
+        "minCount": 1,
+        "maxCount": 2
+      }
+    ],
+    "ambient": [],
+    "axolotls": [],
+    "underground_water_creature": [],
+    "water_creature": [
+      {
+        "type": "dolphin",
+        "weight": 20,
+        "minCount": 1,
+        "maxCount": 3
+      }
+    ],
+    "water_ambient": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "features": [
+    [],
+    [],
+    [
+      "minecraft:iceberg_packed",
+      "minecraft:iceberg_blue"
+    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ]
+}

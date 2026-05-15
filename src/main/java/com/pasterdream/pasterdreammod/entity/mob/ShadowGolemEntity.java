@@ -69,6 +69,8 @@ public class ShadowGolemEntity extends Monster implements GeoEntity {
 
     /** 当前动画标识（用于 procedure 控制器） */
     public String animationprocedure = "empty";
+    /** 客户端当前正在播放的procedure动画（用于防止重复设置） */
+    private String currentlyPlaying = "empty";
     private boolean swinging;
     private boolean lastloop;
     private long lastSwing;
@@ -280,6 +282,7 @@ public class ShadowGolemEntity extends Monster implements GeoEntity {
             }
             if (skillTimer >= 46) {
                 skillTimer = 0;
+                setAnimation("empty");
             }
         } else {
             skillTime++;
@@ -375,19 +378,27 @@ public class ShadowGolemEntity extends Monster implements GeoEntity {
     }
 
     private PlayState procedurePredicate(software.bernie.geckolib.animation.AnimationState<ShadowGolemEntity> state) {
-        String anim = this.getSyncedAnimation();
-        boolean isClient = level().isClientSide();
-        if (!anim.equals("empty")) {
-            PasterDreamMod.LOGGER.info("[procedurePredicate] >>> PLAYING animation '{}' on {} (ctrlState={})",
-                    anim, isClient ? "CLIENT" : "SERVER", state.getController().getAnimationState());
-            state.getController().setAnimation(RawAnimation.begin().thenPlay(anim));
-            if (isClient) {
-                this.setAnimation("empty");
-            }
-        } else {
+        if (!level().isClientSide())
             return PlayState.STOP;
+
+        String anim = this.getSyncedAnimation();
+        if (!anim.equals("empty") && !anim.equals(currentlyPlaying)) {
+            PasterDreamMod.LOGGER.info("[procedurePredicate] >>> PLAYING animation '{}' on CLIENT (ctrlState={})",
+                    anim, state.getController().getAnimationState());
+            currentlyPlaying = anim;
+            state.getController().setAnimation(RawAnimation.begin().thenPlay(anim));
+            return PlayState.CONTINUE;
         }
-        return PlayState.CONTINUE;
+        if (!currentlyPlaying.equals("empty")) {
+            if (state.getController().getAnimationState() == AnimationController.State.STOPPED) {
+                PasterDreamMod.LOGGER.info("[procedurePredicate] >>> animation '{}' finished on CLIENT", currentlyPlaying);
+                currentlyPlaying = "empty";
+                this.setAnimation("empty");
+                return PlayState.STOP;
+            }
+            return PlayState.CONTINUE;
+        }
+        return PlayState.STOP;
     }
 
     @Override

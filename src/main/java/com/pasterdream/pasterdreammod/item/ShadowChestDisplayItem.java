@@ -34,7 +34,7 @@ public class ShadowChestDisplayItem extends BlockItem implements GeoItem {
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "display", 20, state -> PlayState.CONTINUE));
-    }
+}
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {

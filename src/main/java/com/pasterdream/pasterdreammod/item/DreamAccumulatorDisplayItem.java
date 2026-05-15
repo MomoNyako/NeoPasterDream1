@@ -64,10 +64,9 @@ public class DreamAccumulatorDisplayItem extends BlockItem implements GeoItem {
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 0, state -> {
-            // 手持时持续播放动画
             return PlayState.CONTINUE;
         }));
-    }
+}
 
     /**
      * 获取动画实例缓存

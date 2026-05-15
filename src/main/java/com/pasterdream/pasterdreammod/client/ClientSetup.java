@@ -9,16 +9,23 @@ import com.pasterdream.pasterdreammod.client.renderer.block.ShadowChestBlockRend
 import com.pasterdream.pasterdreammod.client.renderer.entity.PinkSlimeRenderer;
 import com.pasterdream.pasterdreammod.client.renderer.entity.ShadowGolemRenderer;
 import com.pasterdream.pasterdreammod.client.screen.ShadowChestScreen;
+import com.pasterdream.pasterdreammod.client.tank.ClientTankEvents;
 import com.pasterdream.pasterdreammod.registry.PDBlockEntities;
 import com.pasterdream.pasterdreammod.registry.PDEntities;
 import com.pasterdream.pasterdreammod.registry.PDMenus;
 import com.pasterdream.pasterdreammod.registry.PDParticles;
+import net.minecraft.client.renderer.DimensionSpecialEffects;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 /**
  * 客户端设置类
@@ -99,5 +106,50 @@ public class ClientSetup {
     @SubscribeEvent
     public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(PDParticles.MELTDREAM_CRYSTAL_PARTICLE.get(), LifeCrystalParticle.Provider::new);
+    }
+
+    /**
+     * 注册染梦世界维度特殊效果（天空、雾色）
+     * 对应 dimension_type JSON 中的 "effects": "pasterdream:dyedream_world"
+     */
+    @SubscribeEvent
+    public static void registerDimensionSpecialEffects(RegisterDimensionSpecialEffectsEvent event) {
+        event.register(
+                ResourceLocation.fromNamespaceAndPath(PasterDreamMod.MOD_ID, "dyedream_world"),
+                new DimensionSpecialEffects(
+                        192.0f,
+                        true,
+                        DimensionSpecialEffects.SkyType.NORMAL,
+                        false,
+                        false
+                ) {
+                    @Override
+                    public Vec3 getBrightnessDependentFogColor(
+                            Vec3 fogColor, float sunHeight) {
+                        return fogColor.multiply(sunHeight * 0.94 + 0.06,
+                                sunHeight * 0.94 + 0.06,
+                                sunHeight * 0.91 + 0.09);
+                    }
+
+                    @Override
+                    public boolean isFoggyAt(int x, int y) {
+                        return false;
+                    }
+                }
+        );
+    }
+
+    /**
+     * 客户端初始化
+     * 在 FMLClientSetupEvent 时注册自定义 HUD 覆盖层事件监听器
+     * <p>
+     * RenderGuiEvent 走 NeoForge 事件总线而非 Mod 事件总线，
+     * 因此需要在此处手动注册到 NeoForge.EVENT_BUS
+     *
+     * @param event 客户端设置事件
+     */
+    @SubscribeEvent
+    public static void onClientSetup(FMLClientSetupEvent event) {
+        NeoForge.EVENT_BUS.addListener(ClientTankEvents::onRenderGuiPost);
     }
 }

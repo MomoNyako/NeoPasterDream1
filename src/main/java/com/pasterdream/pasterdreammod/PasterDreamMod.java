@@ -1,9 +1,11 @@
 package com.pasterdream.pasterdreammod;
 
+import com.pasterdream.pasterdreammod.capability.MeltDreamEnergyCapability;
+import com.pasterdream.pasterdreammod.capability.SanCapability;
+import com.pasterdream.pasterdreammod.command.PDCommands;
 import com.pasterdream.pasterdreammod.registry.PDBlockEntities;
 import com.pasterdream.pasterdreammod.registry.PDBlocks;
 import com.pasterdream.pasterdreammod.registry.PDCreativeTabs;
-import com.pasterdream.pasterdreammod.registry.PDDimensions;
 import com.pasterdream.pasterdreammod.registry.PDEffects;
 import com.pasterdream.pasterdreammod.registry.PDEntities;
 import com.pasterdream.pasterdreammod.registry.PDEntityEvents;
@@ -15,6 +17,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,11 +64,7 @@ public class PasterDreamMod {
         // 注册状态效果（BUFF/DEBUFF）
         PDEffects.MOB_EFFECTS.register(modEventBus);
 
-        // 注册维度类型
-        PDDimensions.DIMENSION_TYPES.register(modEventBus);
-
-        // 注册维度实例
-        PDDimensions.LEVEL_STEMS.register(modEventBus);
+        // 染梦维度的注册由 data/pasterdream/dimension/dyedream_world.json 数据驱动
 
         // 注册结构类型
         PDStructures.STRUCTURE_TYPES.register(modEventBus);
@@ -75,8 +75,17 @@ public class PasterDreamMod {
         // 注册粒子类型
         PDParticles.PARTICLE_TYPES.register(modEventBus);
 
+        // 初始化染梦能量系统（注册 AttachmentType + 事件监听器）
+        MeltDreamEnergyCapability.init(modEventBus);
+
+        // 初始化 San 理智值系统（注册 AttachmentType + 事件监听器）
+        SanCapability.init(modEventBus);
+
         // 监听通用设置事件
         modEventBus.addListener(this::commonSetup);
+
+        // 在游戏总线上注册指令
+        NeoForge.EVENT_BUS.addListener(PDCommands::register);
     }
 
     /**
@@ -86,5 +95,6 @@ public class PasterDreamMod {
      */
     private void commonSetup(final FMLCommonSetupEvent event) {
         // 初始化逻辑放在这里
+        LOGGER.info("PasterDreamMod 通用设置阶段初始化完成");
     }
 }

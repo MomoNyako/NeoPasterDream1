@@ -15,11 +15,11 @@ import java.util.List;
 public class MagicStoneItem extends Item {
     public MagicStoneItem() {
         super(new Item.Properties().stacksTo(64).rarity(Rarity.COMMON));
-    }
+}
 
     @Override
     public void appendHoverText(ItemStack itemstack, Item.TooltipContext context, List<Component> list, TooltipFlag flag) {
         super.appendHoverText(itemstack, context, list, flag);
         list.add(Component.literal("§7§o哪个法师的兜里不会踹几块魔法石呢？"));
-    }
+}
 }

@@ -32,4 +32,11 @@ public class PDParticles {
      */
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SHADOW_STONE_PARTICLE =
             PARTICLE_TYPES.register("shadow_stone_particle", () -> new SimpleParticleType(false));
+
+    /**
+     * 衍梦肥泥粒子（dreamfertiliter_particle）
+     * 用于衍梦肥泥使用时的绿色魔法粒子效果
+     */
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> DREAMFERTILITER_PARTICLE =
+            PARTICLE_TYPES.register("dreamfertiliter_particle", () -> new SimpleParticleType(false));
 }

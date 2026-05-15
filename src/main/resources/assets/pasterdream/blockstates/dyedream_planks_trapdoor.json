@@ -1,0 +1,60 @@
+{
+  "variants": {
+    "facing=east,half=bottom,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor"
+    },
+    "facing=east,half=bottom,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open"
+    },
+    "facing=east,half=top,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_top"
+    },
+    "facing=east,half=top,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open",
+      "x": 180,
+      "y": 90
+    },
+    "facing=north,half=bottom,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor"
+    },
+    "facing=north,half=bottom,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open"
+    },
+    "facing=north,half=top,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_top"
+    },
+    "facing=north,half=top,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open",
+      "x": 180,
+      "y": 0
+    },
+    "facing=south,half=bottom,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor"
+    },
+    "facing=south,half=bottom,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open"
+    },
+    "facing=south,half=top,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_top"
+    },
+    "facing=south,half=top,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open",
+      "x": 180,
+      "y": 180
+    },
+    "facing=west,half=bottom,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor"
+    },
+    "facing=west,half=bottom,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open"
+    },
+    "facing=west,half=top,open=false": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_top"
+    },
+    "facing=west,half=top,open=true": {
+      "model": "pasterdream:block/dyedream_planks_trapdoor_open",
+      "x": 180,
+      "y": 270
+    }
+  }
+}
