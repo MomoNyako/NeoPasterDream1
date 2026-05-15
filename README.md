@@ -1,25 +1,83 @@
+<div align="center">
+<br><br>
 
-Installation information
-=======
+<pre style="font-family: 'Courier New', monospace; line-height: 1.2; color: #9B59B6; text-shadow: 0 0 15px #9B59B6;">
+███╗   ██╗███████╗ ██████╗      ██████╗  █████╗ ███████╗████████╗    ██████╗ ██████╗ ███████╗ █████╗ ███╗   ███╗
+████╗  ██║██╔════╝██╔═══██╗    ██╔══██╗██╔══██╗██╔════╝╚══██╔══╝    ██╔══██╗██╔══██╗██╔════╝██╔══██╗████╗ ████║
+██╔██╗ ██║█████╗  ██║   ██║    ██████╔╝███████║███████╗   ██║       ██║  ██║██████╔╝█████╗  ███████║██╔████╔██║
+██║╚██╗██║██╔══╝  ██║   ██║    ██╔═══╝ ██╔══██║╚════██║   ██║       ██║  ██║██╔══██╗██╔══╝  ██╔══██║██║╚██╔╝██║
+██║ ╚████║███████╗╚██████╔╝    ██║     ██║  ██║███████║   ██║       ██████╔╝██║  ██║███████╗██║  ██║██║ ╚═╝ ██║
+╚═╝  ╚═══╝╚══════╝ ╚═════╝     ╚═╝     ╚═╝  ╚═╝╚══════╝   ╚═╝       ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝
+</pre>
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+<h1>
+  🌙
+  <span style="color: #9B59B6; text-shadow: 0 0 20px #9B59B6;">Neo Past Dream1</span>
+  <span style="color: #888888; font-size: 0.5em;">帕斯特之梦移植计划</span>
+  🌙
+</h1>
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+<p><i>🌙 梦境尚未终结，寻梦者再次出发 🌙</i></p>
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+<img src="https://img.shields.io/badge/🔮_梦境冒险-9B59B6?style=flat-square">
+<img src="https://img.shields.io/badge/📖_剧情驱动-4ECDC4?style=flat-square">
+<img src="https://img.shields.io/badge/⚔️_魂系战斗-FF6B6B?style=flat-square">
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+</div>
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+---
+
+## 📖 模组简介 / Overview
+
+该模组是帕斯特之梦在 1.21.1 NeoForge 加载器上的移植。
+
+---
+
+## ⚙️ 开发状态 / Development Status
+
+<div align="center">
+
+| 模块 | 进度 | 状态 |
+|:---|:---:|:---:|
+| 核心框架 | ████████░░ | 🔄 80% |
+| 维度系统 | ██████░░░░ | 🔄 60% |
+| 装备与战斗 | █████░░░░░ | 🔄 50% |
+| 剧情与笔记 | ████░░░░░░ | 🔄 40% |
+| Boss 战 | ███░░░░░░░ | 🔄 30% |
+| 法术系统 | ██░░░░░░░░ | 🔄 20% |
+
+</div>
+
+> ⏳ **预计首次测试版本**：待定
+> 
+> 💡 **当前阶段**：核心框架搭建与维度基础开发
+
+---
+
+## ⚠️ 声明 / Notice
+
+> **本项目为独立开发，因原帕斯特之梦使用 MCR，存在许多的不规范和错误的使用，该模组几乎是从头开始写的。**
+
+---
+
+## 🤝 参与开发 / Contribute
+
+> 欢迎加入开发工作！
+
+| 贡献类型 | 说明 |
+|:---|:---|
+| **代码开发** | 机制实现、API 适配、修复原模组存在的错误方法（现主要） |
+| **测试反馈** | Bug 报告、兼容性测试（现主要） |
+| **文案设计** | 剧情文本、物品描述、对话内容创作 |
+
+---
+
+<div align="center">
+
+[![GitHub](https://img.shields.io/badge/GitHub-项目仓库-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/LOVE-U987/NeoPasterDream1)
+
+> 💡 **提示**：本项目仍在早期开发阶段，暂不提供下载。请关注仓库获取最新进展。
+
+*✨ 为了你自己，或者以往寻梦者之中的某一人 ✨*
+
+</div>

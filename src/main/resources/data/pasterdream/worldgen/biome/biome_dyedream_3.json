@@ -63,21 +63,5 @@
     "water_ambient": [],
     "misc": []
   },
-  "spawn_costs": {},
-  "features": [
-    [],
-    [],
-    [
-      "minecraft:iceberg_packed",
-      "minecraft:iceberg_blue"
-    ],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    []
-  ]
+  "spawn_costs": {}
 }

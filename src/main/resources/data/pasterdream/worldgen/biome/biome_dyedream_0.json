@@ -64,20 +64,5 @@
     "water_ambient": [],
     "misc": []
   },
-  "spawn_costs": {},
-  "features": [
-    [],
-    [
-      "minecraft:lake_lava_underground"
-    ],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    []
-  ]
+  "spawn_costs": {}
 }
