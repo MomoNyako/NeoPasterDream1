@@ -64,5 +64,20 @@
     "water_ambient": [],
     "misc": []
   },
-  "spawn_costs": {}
+  "spawn_costs": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "minecraft:freeze_top_layer"
+    ]
+  ]
 }
