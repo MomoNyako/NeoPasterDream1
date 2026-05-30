@@ -180,8 +180,9 @@ public class StructureTerrainNegotiator {
             PasterDreamMod.LOGGER.warn("[TerrainNegotiator] ⚠️ 结构 [{}] 放置失败: {}", structureName, reason);
 
             if (record.isFailingFrequently()) {
-                PasterDreamMod.LOGGER.error("[TerrainNegotiator] ❌ 结构 [{}] 频繁失败！失败率: {:.1%}",
-                        structureName, record.getFailureRate());
+                String failureRateStr = String.format("%.1f%%", record.getFailureRate() * 100);
+                PasterDreamMod.LOGGER.error("[TerrainNegotiator] ❌ 结构 [{}] 频繁失败！失败率: {}",
+                        structureName, failureRateStr);
                 printStructureDiagnostics(structureName);
             }
         }
