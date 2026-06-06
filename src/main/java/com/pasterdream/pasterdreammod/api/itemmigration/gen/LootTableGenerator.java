@@ -262,7 +262,7 @@ public class LootTableGenerator {
      */
     public static void saveLootTableToFile(String lootJson, String modId, String blockName, String basePath)
             throws IOException {
-        Path outputDir = Paths.get(basePath, "data", modId, "loot_tables", "blocks");
+        Path outputDir = Paths.get(basePath, "data", modId, "loot_table", "blocks");
         Files.createDirectories(outputDir);
 
         Path outputFile = outputDir.resolve(blockName + ".json");

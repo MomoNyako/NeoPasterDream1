@@ -1,9 +1,6 @@
 package com.pasterdream.pasterdreammod.client;
 
 import com.pasterdream.pasterdreammod.PasterDreamMod;
-import com.pasterdream.pasterdreammod.api.dimension.DimensionAPI;
-import com.pasterdream.pasterdreammod.api.entity.EntityAPI;
-import com.pasterdream.pasterdreammod.api.particle.ParticleAPI;
 import com.pasterdream.pasterdreammod.client.model.Modelslime;
 import com.pasterdream.pasterdreammod.client.particle.*;
 import com.pasterdream.pasterdreammod.client.renderer.block.DreamAccumulatorBlockRenderer;
@@ -22,7 +19,9 @@ import com.pasterdream.pasterdreammod.client.screen.TheEndlessBookOfDreamSeekers
 import com.pasterdream.pasterdreammod.registry.PDBlockEntities;
 import com.pasterdream.pasterdreammod.registry.PDEntities;
 import com.pasterdream.pasterdreammod.registry.PDMenus;
+import com.pasterdream.pasterdreammod.registry.PDParticles;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -97,11 +96,13 @@ public class ClientSetup {
         PasterDreamMod.LOGGER.info("[ClientSetup] 注册方块实体渲染器: the_endless_book_of_dream_seekers → TheEndlessBookOfDreamSeekersBlockRenderer");
 
         // 注册暗影魔像实体渲染器
-        EntityAPI.registerRenderer(event, "shadow_golem", ShadowGolemRenderer::new);
+        var shadowGolemType = PDEntities.SHADOW_GOLEM.get();
+        event.registerEntityRenderer(shadowGolemType, ShadowGolemRenderer::new);
         PasterDreamMod.LOGGER.info("[ClientSetup] 注册实体渲染器: shadow_golem → ShadowGolemRenderer （GeckoLib）");
 
         // 注册粉色史莱姆实体渲染器
-        EntityAPI.registerRenderer(event, "pink_slime", PinkSlimeRenderer::new);
+        var pinkSlimeType = PDEntities.PINK_SLIME.get();
+        event.registerEntityRenderer(pinkSlimeType, PinkSlimeRenderer::new);
         PasterDreamMod.LOGGER.info("[ClientSetup] 注册实体渲染器: pink_slime → PinkSlimeRenderer （原生模型）");
     }
 
@@ -128,11 +129,11 @@ public class ClientSetup {
         event.register(PDMenus.SHADOW_CHEST.get(), ShadowChestScreen::new);
         PasterDreamMod.LOGGER.info("[ClientSetup] 注册 GUI 屏幕: shadow_chest → ShadowChestScreen");
 
-        event.register(PDMenus.DYEDREAM_DESK.get(), DyedreamDeskScreen::new);
-        PasterDreamMod.LOGGER.info("[ClientSetup] 注册 GUI 屏幕: dyedream_desk → DyedreamDeskScreen");
-
         event.register(PDMenus.MELTDREAM_CHEST.get(), MeltdreamChestScreen::new);
         PasterDreamMod.LOGGER.info("[ClientSetup] 注册 GUI 屏幕: meltdream_chest → MeltdreamChestScreen");
+
+        event.register(PDMenus.DYEDREAM_DESK.get(), DyedreamDeskScreen::new);
+        PasterDreamMod.LOGGER.info("[ClientSetup] 注册 GUI 屏幕: dyedream_desk → DyedreamDeskScreen");
 
         event.register(PDMenus.DREAM_CAULDRON.get(), DreamCauldronScreen::new);
         PasterDreamMod.LOGGER.info("[ClientSetup] 注册 GUI 屏幕: dream_cauldron → DreamCauldronScreen");
@@ -144,7 +145,6 @@ public class ClientSetup {
     /**
      * 注册粒子提供器
      * 在 RegisterParticleProvidersEvent 事件时调用
-     * 使用 ParticleAPI 统一管理 Provider 注册
      *
      * @param event 粒子提供器注册事件
      */
@@ -152,17 +152,18 @@ public class ClientSetup {
     public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         PasterDreamMod.LOGGER.info("[ClientSetup] 开始注册粒子提供器...");
 
-        ParticleAPI.registerProviderSprite(event, "meltdream_crystal_particle", LifeCrystalParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "dream_ambient_particle", DreamAmbientParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "leaves_particle", LeavesParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "dreamfertiliter_particle", DreamfertiliterFallingParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "calle_particle", CalleParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "silver_particle", SilverParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "crack_0_particle", CrackParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "white_star_particle", WhiteStarParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "snowflake_0_particle", SnowflakeParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "feather_white_particle", FeatherWhiteParticle.Provider::new);
-        ParticleAPI.registerProviderSprite(event, "dyedream_0_particle", DyedreamParticle.Provider::new);
+        // 直接使用 PDParticles 中的粒子类型注册 Provider
+        event.registerSpriteSet(PDParticles.MELTDREAM_CRYSTAL_PARTICLE.get(), LifeCrystalParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.DREAM_AMBIENT_PARTICLE.particleType(), DreamAmbientParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.LEAVES_PARTICLE.particleType(), LeavesParticle.Provider::new);
+        event.registerSpriteSet(PDParticles.DREAMFERTILITER_PARTICLE.get(), DreamfertiliterFallingParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.CALLE_PARTICLE.particleType(), CalleParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.SILVER_PARTICLE.particleType(), SilverParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.CRACK_0_PARTICLE.particleType(), CrackParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.WHITE_STAR_PARTICLE.particleType(), WhiteStarParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.SNOWFLAKE_0_PARTICLE.particleType(), SnowflakeParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.FEATHER_WHITE_PARTICLE.particleType(), FeatherWhiteParticle.Provider::new);
+        event.registerSpriteSet((SimpleParticleType) PDParticles.DYEDREAM_0_PARTICLE.particleType(), DyedreamParticle.Provider::new);
 
         PasterDreamMod.LOGGER.info("[ClientSetup] 粒子提供器注册完成，共 11 个粒子类型");
     }
@@ -214,8 +215,8 @@ public class ClientSetup {
      */
     @SubscribeEvent
     public static void registerDimensionSpecialEffects(RegisterDimensionSpecialEffectsEvent event) {
-        DimensionAPI.registerEffects(event, "dyedream_world",
-                new DimensionSpecialEffects(
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(PasterDreamMod.MOD_ID, "dyedream_world");
+        event.register(id, new DimensionSpecialEffects(
                         192.0f,
                         true,
                         DimensionSpecialEffects.SkyType.NORMAL,

@@ -18,7 +18,7 @@ import java.util.List;
  *   <li><b>模式三</b>：{@link #batchDropSelf(String, int...)} / {@link #batchDropSelfRange(String, int, int, int...)} 对应 BatchBlockBuilder</li>
  * </ul>
  * <p>
- * 所有方法生成的 JSON 文件默认写入 {@code src/main/resources/data/{modId}/loot_tables/blocks/} 目录。
+ * 所有方法生成的 JSON 文件默认写入 {@code src/main/resources/data/{modId}/loot_table/blocks/} 目录。
  * <p>
  * 使用示例：
  * <pre>{@code

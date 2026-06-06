@@ -77,10 +77,10 @@ public class PDItems {
             () -> new MeltdreamChestDisplayItem(new Item.Properties()));
 
     /**
-     * 融梦水晶箱（打开状态）- 简单 BlockItem，无需 GeckoLib
+     * 融梦水晶箱（打开状态）物品 - 使用 MeltdreamChestOpenDisplayItem 实现手持 3D 渲染
      */
-    public static final DeferredItem<BlockItem> MELTDREAM_CHEST_OPEN = ITEMS.registerSimpleBlockItem("meltdream_chest_open",
-            PDBlocks.MELTDREAM_CHEST_OPEN);
+    public static final DeferredItem<MeltdreamChestOpenDisplayItem> MELTDREAM_CHEST_OPEN = ITEMS.register("meltdream_chest_open",
+            () -> new MeltdreamChestOpenDisplayItem(new Item.Properties()));
 
     // ==================== 染梦世界方块物品 ====================
 
@@ -111,8 +111,6 @@ public class PDItems {
     public static final DeferredItem<BlockItem> DYEDREAM_GRASS = ITEMS.registerSimpleBlockItem("dyedream_grass", PDBlocks.DYEDREAM_GRASS);
     public static final DeferredItem<BlockItem> DYEDREAM_LOG = ITEMS.registerSimpleBlockItem("dyedream_log", PDBlocks.DYEDREAM_LOG);
     public static final DeferredItem<BlockItem> DYEDREAM_WOOD = ITEMS.registerSimpleBlockItem("dyedream_wood", PDBlocks.DYEDREAM_WOOD);
-    public static final DeferredItem<BlockItem> STRIPPED_DYEDREAM_LOG = ITEMS.registerSimpleBlockItem("stripped_dyedream_log", PDBlocks.STRIPPED_DYEDREAM_LOG);
-    public static final DeferredItem<BlockItem> STRIPPED_DYEDREAM_WOOD = ITEMS.registerSimpleBlockItem("stripped_dyedream_wood", PDBlocks.STRIPPED_DYEDREAM_WOOD);
     public static final DeferredItem<BlockItem> PILLAR_DYEDREAMQUARTZ_BLOCK = ITEMS.registerSimpleBlockItem("pillar_dyedreamquartz_block", PDBlocks.PILLAR_DYEDREAMQUARTZ_BLOCK);
     public static final DeferredItem<BlockItem> DYEDREAM_PLANKS_STAIRS = ITEMS.registerSimpleBlockItem("dyedream_planks_stairs", PDBlocks.DYEDREAM_PLANKS_STAIRS);
     public static final DeferredItem<BlockItem> DYEDREAM_BUD_STAIRS = ITEMS.registerSimpleBlockItem("dyedream_bud_stairs", PDBlocks.DYEDREAM_BUD_STAIRS);
@@ -656,22 +654,28 @@ public class PDItems {
 
     // ==================== 需要自定义类的物品（tooltip/交互） ====================
 
-    public static final DeferredItem<Item> AMBER_CANDY = ITEMS.register("amber_candy",
-            () -> new AmberCandyItem(new Item.Properties()));
+    public static final DeferredItem<Item> AMBER_CANDY =
+            ItemMigrationAPI.foodItem("amber_candy")
+                    .nutrition(0).saturationModifier(0f)
+                    .build();
     public static final DeferredItem<Item> BLUE_DEW = ITEMS.register("blue_dew",
             () -> new BlueDewItem(new Item.Properties()));
-    public static final DeferredItem<Item> BREAD_SLICE = ITEMS.register("bread_slice",
-            () -> new BreadSliceItem(new Item.Properties()));
+    public static final DeferredItem<Item> BREAD_SLICE =
+            ItemMigrationAPI.foodItem("bread_slice")
+                    .nutrition(0).saturationModifier(0f)
+                    .build();
     public static final DeferredItem<Item> BUBBLE_TEA = ITEMS.register("bubble_tea",
             () -> new BubbleTeaItem(new Item.Properties()));
-    public static final DeferredItem<Item> CAKE_BASE = ITEMS.register("cake_base",
-            () -> new CakeBaseItem(new Item.Properties()));
+    public static final DeferredItem<Item> CAKE_BASE =
+            ItemMigrationAPI.foodItem("cake_base")
+                    .nutrition(0).saturationModifier(0f)
+                    .build();
     public static final DeferredItem<Item> CRADLE_IN_ONES_ARMS = ITEMS.register("cradle_in_ones_arms",
             () -> new CradleInOnesArmsItem(new Item.Properties()));
-    public static final DeferredItem<Item> DREAM_COIN_0 = ITEMS.register("dream_coin_0",
-            () -> new DreamCoin0Item(new Item.Properties()));
-    public static final DeferredItem<Item> DREAM_COIN_1 = ITEMS.register("dream_coin_1",
-            () -> new DreamCoin1Item(new Item.Properties()));
+    public static final DeferredItem<Item> DREAM_COIN_0 =
+            ItemMigrationAPI.simpleItem("dream_coin_0").build();
+    public static final DeferredItem<Item> DREAM_COIN_1 =
+            ItemMigrationAPI.simpleItem("dream_coin_1").build();
     public static final DeferredItem<DreamFertilizerItem> DREAM_FERTILIZER = ITEMS.register("dream_fertilizer",
             () -> new DreamFertilizerItem(new Item.Properties(), PDParticles.DREAMFERTILITER_PARTICLE));
     public static final DeferredItem<Item> DYEDREAM_FRUIT = ITEMS.register("dyedream_fruit",
@@ -680,12 +684,14 @@ public class PDItems {
             () -> new DyedreamTeleportCrystal(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<Item> DYEDREAM_PERFUME = ITEMS.register("dyedream_perfume",
             () -> new DyedreamPerfumeItem(new Item.Properties()));
-    public static final DeferredItem<Item> ELIXIR_BOTTLE = ITEMS.register("elixir_bottle",
-            () -> new ElixirBottleItem(new Item.Properties()));
-    public static final DeferredItem<Item> FIG = ITEMS.register("fig",
-            () -> new FigItem(new Item.Properties()));
-    public static final DeferredItem<Item> GLASSJAR = ITEMS.register("glassjar",
-            () -> new GlassjarItem(new Item.Properties()));
+    public static final DeferredItem<Item> ELIXIR_BOTTLE =
+            ItemMigrationAPI.simpleItem("elixir_bottle").build();
+    public static final DeferredItem<Item> FIG =
+            ItemMigrationAPI.foodItem("fig")
+                    .nutrition(0).saturationModifier(0f)
+                    .build();
+    public static final DeferredItem<Item> GLASSJAR =
+            ItemMigrationAPI.simpleItem("glassjar").build();
     public static final DeferredItem<Item> GUIDING_DRUG = ITEMS.register("guiding_drug",
             () -> new GuidingDrugItem(new Item.Properties()));
     public static final DeferredItem<Item> HEART_CHOCOLATE_0 = ITEMS.register("heart_chocolate_0",
@@ -736,8 +742,8 @@ public class PDItems {
             () -> new EmbryoCharmItem());
     public static final DeferredItem<EmbryoNecklaceItem> EMBRYO_NECKLACE = ITEMS.register("embryo_necklace",
             () -> new EmbryoNecklaceItem());
-    public static final DeferredItem<EmbryoRingItem> EMBRYO_RING = ITEMS.register("embryo_ring",
-            () -> new EmbryoRingItem());
+    public static final DeferredItem<Item> EMBRYO_RING =
+            ItemMigrationAPI.curioItem("embryo_ring").build();
     public static final DeferredItem<Item> FORSAKENS_WING = ITEMS.registerSimpleItem("forsakens_wing");
     public static final DeferredItem<GhostFaceHeadItem> GHOST_FACE_HEAD = ITEMS.register("ghost_face_head",
             () -> new GhostFaceHeadItem());
@@ -749,7 +755,8 @@ public class PDItems {
     public static final DeferredItem<Item> MACHINE_WING = ITEMS.registerSimpleItem("machine_wing");
 // ===== 实用工具类物品 =====
 
-    public static final DeferredItem<Item> PALE_BONENEEDLE = ITEMS.registerSimpleItem("pale_boneneedle");
+    public static final DeferredItem<PaleBoneneedleItem> PALE_BONENEEDLE = ITEMS.register("pale_boneneedle",
+            () -> new PaleBoneneedleItem(new Item.Properties()));
     public static final DeferredItem<RedDew0RingItem> RED_DEW_0_RING = ITEMS.register("red_dew_0_ring",
             () -> new RedDew0RingItem());
     public static final DeferredItem<RedDew1RingItem> RED_DEW_1_RING = ITEMS.register("red_dew_1_ring",
@@ -931,8 +938,8 @@ public class PDItems {
      * 测试饰品 (test_curio)
      * Curio 测试物品
      */
-    public static final DeferredItem<TestCurioItem> TEST_CURIO = ITEMS.register("test_curio",
-            () -> new TestCurioItem());
+    public static final DeferredItem<Item> TEST_CURIO =
+            ItemMigrationAPI.curioItem("test_curio").build();
 
     /**
      * 旅者腰带 (traveler_belt)
@@ -966,11 +973,12 @@ public class PDItems {
 
     /**
      * 甜蜜的梦唱片 (sweetdream_disc)
-     * PasterDream - 甜蜜的梦，时长 2220 tick（约 111 秒）
+     * "double scoop" by A L E X
      */
     public static final DeferredItem<PastedreamMusicDiscItem> SWEETDREAM_DISC =
             ItemMigrationAPI.registerCustom("sweetdream_disc",
-                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "sweetdream_disc", "sweetdream"));
+                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "sweetdream_disc", "sweetdream",
+                            "double scoop", "A L E X", "double scoop"));
 
     /**
      * 落雪之梦唱片 (snowfalldream_disc)
@@ -1016,35 +1024,39 @@ public class PDItems {
 
     /**
      * 梦幻草原唱片 (dream_meadow_disc)
-     * PasterDream - 梦幻草原，时长 2220 tick（约 111 秒）
+     * "Nocturne in Paris" by Tony Anderson
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_MEADOW_DISC =
             ItemMigrationAPI.registerCustom("dream_meadow_disc",
-                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_meadow_disc", "dream_meadow"));
+                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_meadow_disc", "dream_meadow",
+                            "Nocturne in Paris", "Tony Anderson", "Immanuel"));
 
     /**
      * 梦幻荒原唱片 (dream_heath_disc)
-     * PasterDream - 梦幻荒原，时长 2400 tick（约 120 秒）
+     * "Pop In" by [.que]
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_HEATH_DISC =
             ItemMigrationAPI.registerCustom("dream_heath_disc",
-                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_heath_disc", "dream_heath"));
+                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_heath_disc", "dream_heath",
+                            "Pop In", "[.que]", "Another Sky"));
 
     /**
      * 梦幻雪林唱片 (dream_taiga_disc)
-     * PasterDream - 梦幻雪林，时长 2600 tick（约 130 秒）
+     * "Forest" by [.que]
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_TAIGA_DISC =
             ItemMigrationAPI.registerCustom("dream_taiga_disc",
-                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_taiga_disc", "dream_taiga"));
+                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_taiga_disc", "dream_taiga",
+                            "Forest", "[.que]", "Wonderland"));
 
     /**
      * 梦幻三角洲唱片 (dream_delta_disc)
-     * PasterDream - 梦幻三角洲，时长 2800 tick（约 140 秒）
+     * "The Shore" by Mango
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_DELTA_DISC =
             ItemMigrationAPI.registerCustom("dream_delta_disc",
-                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_delta_disc", "dream_delta"));
+                    () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_delta_disc", "dream_delta",
+                            "The Shore", "Mango", "Citylanes Airplanes"));
 
     // 标记唱片迁移状态
     static {
@@ -1160,6 +1172,20 @@ public class PDItems {
     public static final DeferredItem<DebugStructureWandItem> DEBUG_WAND_PINKAGARIC_3 =
             ITEMS.register("debug_wand_pinkagaric_3",
                     () -> new DebugStructureWandItem(new Item.Properties().stacksTo(1), "pinkagaric_house_3"));
+
+    /**
+     * 调试法杖 - 染梦裂隙
+     */
+    public static final DeferredItem<DebugStructureWandItem> DEBUG_WAND_DYEDREAM_CRACK =
+            ITEMS.register("debug_wand_dyedream_crack",
+                    () -> new DebugStructureWandItem(new Item.Properties().stacksTo(1), "dyedreamcrack0"));
+
+    /**
+     * 调试法杖 - 沙漠小屋
+     */
+    public static final DeferredItem<DebugStructureWandItem> DEBUG_WAND_DESERT_COTTAGE =
+            ITEMS.register("debug_wand_desert_cottage",
+                    () -> new DebugStructureWandItem(new Item.Properties().stacksTo(1), "desert_cottage_0"));
 
     /**
      * 调试法杖 - 云泡泡
@@ -1342,13 +1368,6 @@ public class PDItems {
     public static final DeferredItem<DebugDecorWandItem> DEBUG_WAND_PINKAGARIC =
             ITEMS.register("debug_wand_pinkagaric",
                     () -> new DebugDecorWandItem(new Item.Properties().stacksTo(1), "patch_pinkagaric_0"));
-
-    /**
-     * 调试法杖 - 染梦岩石
-     */
-    public static final DeferredItem<DebugDecorWandItem> DEBUG_WAND_ROCK =
-            ITEMS.register("debug_wand_rock",
-                    () -> new DebugDecorWandItem(new Item.Properties().stacksTo(1), "patch_dyedream_rock"));
 
     /**
      * 静态初始化块 —— 输出所有物品注册的统计信息

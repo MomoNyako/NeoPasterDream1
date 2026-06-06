@@ -256,10 +256,6 @@ public class PDBlocks {
             DyedreamLogBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_LOG));
     public static final DeferredBlock<DyedreamLogBlock> DYEDREAM_WOOD = BLOCKS.registerBlock("dyedream_wood",
             DyedreamLogBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_LOG));
-    public static final DeferredBlock<DyedreamLogBlock> STRIPPED_DYEDREAM_LOG = BLOCKS.registerBlock("stripped_dyedream_log",
-            DyedreamLogBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_LOG));
-    public static final DeferredBlock<DyedreamLogBlock> STRIPPED_DYEDREAM_WOOD = BLOCKS.registerBlock("stripped_dyedream_wood",
-            DyedreamLogBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_LOG));
     public static final DeferredBlock<RotatedPillarBlock> PILLAR_DYEDREAMQUARTZ_BLOCK = BLOCKS.registerBlock("pillar_dyedreamquartz_block",
             RotatedPillarBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.STONE).requiresCorrectToolForDrops());
 
@@ -331,13 +327,6 @@ public class PDBlocks {
         BlockAPI.putConfig("dyedream_wood", BlockConfig.of()
                 .mineable("axe").model("cube_all")
                 .tex("all", "pasterdream:block/dyedream_log"));
-        BlockAPI.putConfig("stripped_dyedream_log", BlockConfig.of()
-                .mineable("axe").model("cube_column")
-                .tex("end", "pasterdream:block/dyedream_log_top")
-                .tex("side", "pasterdream:block/dyedream_log"));
-        BlockAPI.putConfig("stripped_dyedream_wood", BlockConfig.of()
-                .mineable("axe").model("cube_all")
-                .tex("all", "pasterdream:block/dyedream_log"));
         BlockAPI.putConfig("pillar_dyedreamquartz_block", BlockConfig.of()
                 .mineable("pickaxe").model("cube_column")
                 .tex("end", "pasterdream:block/dyedreamquartz_pillar_top")
@@ -401,6 +390,13 @@ public class PDBlocks {
 
         // ========== 梦境列车结构方块 ==========
         BlockAPI.putConfig("dream_train_structure", BlockConfig.of().mineable("pickaxe"));
+
+        // ========== 融梦水晶箱 ==========
+        BlockAPI.putConfig("meltdream_chest", BlockConfig.of().mineable("pickaxe"));
+
+        // ========== 寻梦者的永恒书卷 & 梦境炼药锅 ==========
+        BlockAPI.putConfig("the_endless_book_of_dream_seekers", BlockConfig.of().mineable("axe"));
+        BlockAPI.putConfig("dream_cauldron", BlockConfig.of().mineable("pickaxe"));
     }
 
     // ==================== 玻璃面板和灯笼 ====================
@@ -642,7 +638,7 @@ public class PDBlocks {
                     .emissiveRendering((bs, br, bp) -> true));
 
     public static final DeferredBlock<Vine0Block> VINE_0 = BLOCKS.registerBlock("vine_0", Vine0Block::new,
-            BlockBehaviour.Properties.ofFullCopy(Blocks.VINE).noCollission());
+            BlockBehaviour.Properties.ofFullCopy(Blocks.VINE).noCollission().lightLevel(s -> 14));
 
     public static final DeferredBlock<GoldenrodBlock> GOLDENROD = BLOCKS.registerBlock("goldenrod",
             GoldenrodBlock::new, flowerProps());

@@ -5,7 +5,8 @@
         "up": "true"
       },
       "apply": {
-        "model": "pasterdream:block/dyedreamquartz_block_wall_post"
+        "model": "pasterdream:block/dyedreamquartz_block_wall_post",
+        "uvlock": true
       }
     },
     {

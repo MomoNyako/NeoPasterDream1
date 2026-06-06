@@ -1,6 +1,6 @@
 ---
-alwaysApply: false
-description: 
+alwaysApply: true
+description: NeoPasterDream 模组（NeoForge 1.21.1）开发规范，含反复踩坑的 1.21 数据目录命名变更提醒 
 ---
 # PasterDream NeoForge 1.21.1 开发规则
 
@@ -67,3 +67,52 @@ NeoPasterDream1/
 ## 版本信息
 
 Minecraft 1.21.1 | NeoForge 21.1.219 | GeckoLib 4.7.3 | Java 21
+
+## ⚠️ Minecraft 1.21 数据目录命名变更（反复踩坑警告 ⚠️）
+
+**这是本项目最常出问题的点！每次创建数据文件之前务必核对以下规则。**
+
+Minecraft 1.21 将数据文件夹名从复数改为**单数形式**，用错路径 = 游戏完全忽略该文件，且无任何报错提示。
+
+### 1. 正确目录路径对照表
+
+| 功能 | ❌ 旧路径（1.20） | ✅ 新路径（1.21） |
+|------|-----------------|-----------------|
+| 战利品表 | `data/<modid>/loot_tables/blocks/` | `data/<modid>/loot_table/blocks/` |
+| 配方 | `data/<modid>/recipes/` | `data/<modid>/recipe/` |
+
+### 2. 配方 JSON 格式变更
+
+```diff
+// ❌ 旧格式（1.20）
+"result": {
+-  "item": "pasterdream:xxx",
+  "count": 1
+}
+
+// ✅ 新格式（1.21）
+"result": {
++  "id": "pasterdream:xxx",
+  "count": 1
+}
+```
+
+### 3. `category` 字段有效值
+
+只可使用以下值（不可用 `building_block` 等旧值）：
+- `building`、`redstone`、`equipment`、`misc`、`food`
+
+### 4. 代码生成器路径（已有坑记录）
+
+如果修改生成器代码，注意更新以下文件的输出路径：
+- `gen_block_loot.py` → `LOOT_DIR` 变量
+- `BlockLootAPI.java` → `BASE_PATH` 拼接逻辑
+- `LootTableGenerator.java` → `saveLootTableToFile()` 方法中 `Paths.get(...)` 的参数
+
+上述文件均已修正为 `loot_table/`，**禁止回退为 `loot_tables/`**。
+
+### 5. 标签文件命名空间
+
+- `c/` = Common Convention 标签（社区通用）
+- `minecraft/` = 原版标签
+- `neoforge/` = NeoForge 专属标签

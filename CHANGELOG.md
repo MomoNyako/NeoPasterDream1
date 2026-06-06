@@ -1,547 +1,485 @@
 ## 1. 高层摘要 (TL;DR)
 
-*   **影响范围**：🔴 **高** - 涉及模组核心架构重构，新增5大API系统、装饰物生成系统、数据生成器和测试框架
-*   **核心变更**：
-    *   ✨ 新增 **5个统一API系统**（Block/Dimension/Entity/Particle/Ruin），采用 Facade + Builder 模式
-    *   🏗️ 新增 **WorldDecorationAPI** 装饰物生成系统，支持冰刺、冰之门、方解石柱等12种装饰物
-    *   📦 新增 **数据生成器**（BlockTagProvider/BlockModelProvider），自动生成方块标签和模型
-    *   🧪 新增 **API测试框架**，提供4个Gradle任务用于验证API功能
-    *   📝 版本升级：`0.0.1` → `0.0.3`
-    *   🌐 语言文件扩展：新增20+物品翻译（武器、工具等）
-    *   🔧 **主类重构**：移除旧的能力系统和配置系统，引入新的注册中心
+*   **影响范围**: 🔴 **高** - 涉及核心架构重构、新增多个 API 系统、大量物品/方块注册和客户端渲染优化
+*   **主要变更**:
+    *   🏗️ **架构重构**: 客户端事件从手动注册改为 `@EventBusSubscriber` 注解自动注册，避免服务端类加载问题
+    *   ✨ **新增 API 系统**: 药水效果 API (`MobEffectAPI`)、流体注册系统 (`PDFluids`)、遗迹结构注册 (`PDRuinsRegistration`)
+    *   🧱 **方块构建器增强**: `BatchBlockBuilder` 和 `VariantSetBuilder` 新增 `mineable()` 方法，支持批量配置挖掘工具类型
+    *   📦 **大规模物品迁移**: 使用 `ItemMigrationAPI` 重构 20+ 物品的注册方式
+    *   🎨 **客户端优化**: 新增深海荧光羽毛和蘑菇孢子粒子效果，优化粒子生成性能
 
 ---
 
-## 2. 可视化架构图
-
-### 2.1 API系统架构总览
+## 2. 可视化概览 (代码与逻辑映射)
 
 ```mermaid
-graph TB
-    subgraph "PasterDreamMod 主类"
-        A["PasterDreamMod<br/>构造函数"]
+graph TD
+    subgraph "核心架构层"
+        A["PasterDreamMod.java<br/>主模组类"]
+        A --> B["PDClientEvents.java<br/>客户端事件"]
+        A --> C["DyeDreamSkyRenderer.java<br/>天空渲染"]
+        A --> D["MobEffectAPI.java<br/>药水效果 API"]
+        A --> E["PDFluids.java<br/>流体注册"]
+        A --> F["PDRuinsRegistration.java<br/>遗迹结构注册"]
     end
-    
-    subgraph "API 层 - Facade 模式"
-        B1["BlockAPI<br/>方块注册"]
-        B2["DimensionAPI<br/>维度注册"]
-        B3["EntityAPI<br/>实体注册"]
-        B4["ParticleAPI<br/>粒子注册"]
-        B5["RuinAPI<br/>遗迹结构注册"]
-        B6["ItemMigrationAPI<br/>物品移植"]
-    end
-    
-    subgraph "Builder 层"
-        C1["SimpleBlockBuilder<br/>VariantSetBuilder<br/>BatchBlockBuilder"]
-        C2["DimensionBuilder"]
-        C3["EntityBuilder"]
-        C4["ParticleBuilder"]
-        C5["RuinBuilder<br/>StructureSetBuilder"]
-        C6["SimpleItemBuilder<br/>FoodItemBuilder<br/>ToolItemBuilder"]
-    end
-    
-    subgraph "数据生成层"
-        D1["PDBlockTagProvider<br/>自动生成方块标签"]
-        D2["PDBlockModelProvider<br/>自动生成方块模型"]
-        D3["RecipeGenerator<br/>LootTableGenerator"]
-    end
-    
-    subgraph "世界生成层"
-        E1["DecorationRegistry<br/>装饰物注册中心"]
-        E2["DecorationBuilder<br/>装饰物构建器"]
-        E3["ModDecorations<br/>12种装饰物配置"]
-    end
-    
-    subgraph "测试框架"
-        F1["ParticleApiTestRunner"]
-        F2["EntityApiTestRunner"]
-        F3["RuinApiTestRunner"]
-        F4["RunAllApiTests"]
-    end
-    
-    A --> B1
-    A --> B2
-    A --> B3
-    A --> B4
-    A --> B5
-    A --> B6
-    
-    B1 --> C1
-    B2 --> C2
-    B3 --> C3
-    B4 --> C4
-    B5 --> C5
-    B6 --> C6
-    
-    B1 --> D1
-    B1 --> D2
-    B6 --> D3
-    
-    A --> E1
-    E1 --> E2
-    E2 --> E3
-    
-    F4 --> F1
-    F4 --> F2
-    F4 --> F3
-    
-    style B1 fill:#c8e6c9,color:#1a5e20
-    style B2 fill:#bbdefb,color:#0d47a1
-    style B3 fill:#fff3e0,color:#e65100
-    style B4 fill:#f3e5f5,color:#7b1fa2
-    style B5 fill:#ffcdd2,color:#c62828
-    style B6 fill:#b2dfdb,color:#00695c
-```
 
-### 2.2 装饰物生成流程
+    subgraph "构建器层"
+        G["BatchBlockBuilder.java<br/>批量方块构建器"]
+        H["VariantSetBuilder.java<br/>变体方块构建器"]
+        G --> I["BlockAPI.putConfig()<br/>配置注册"]
+        H --> I
+    end
 
-```mermaid
-sequenceDiagram
-    participant M as ModDecorations
-    participant DB as DecorationBuilder
-    participant DR as DecorationRegistry
-    participant GDF as GenericDecorationFeature
-    participant JSON as JSON生成器
+    subgraph "数据层"
+        J["PDItems.java<br/>物品注册"]
+        K["PDBlocks.java<br/>方块注册"]
+        L["BlockLootAPI.java<br/>战利品表生成"]
+    end
+
+    subgraph "实现层"
+        M["MeltdreamLiquidFluid.java<br/>融梦涌泉流体"]
+        N["DreamTrainStructureBlock.java<br/>梦境列车方块"]
+        O["RecipeGenerationDemo.java<br/>配方生成示例"]
+    end
+
+    A -->|注册| D
+    A -->|注册| E
+    A -->|注册| F
+    A -->|调用| G
+    A -->|调用| H
+    A -->|注册| J
+    A -->|注册| K
     
-    M->>DB: create() + 配置参数
-    Note over DB: type(DecorationType)<br/>body/top/crystal<br/>height/radius<br/>biome/rarity
+    J -->|使用| O
+    K -->|使用| G
+    K -->|使用| H
     
-    DB->>DR: register(name, config, ...)
-    DR->>DR: 创建ResourceKey<br/>存储DecorationEntry
-    DR-->>DB: 返回PlacedFeature Key
+    E -->|关联| M
+    K -->|包含| N
     
-    Note over M: 注册完成
-    
-    DR->>JSON: generateAllJson()
-    JSON->>JSON: 生成configured_feature/*.json
-    JSON->>JSON: 生成placed_feature/*.json
-    JSON-->>DR: JSON文件已生成
-    
-    Note over GDF: 世界生成时<br/>读取JSON配置<br/>执行生成逻辑
+    style A fill:#e3f2fd,color:#0d47a1
+    style D fill:#f3e5f5,color:#7b1fa2
+    style E fill:#fff3e0,color:#e65100
+    style F fill:#e8f5e9,color:#1b5e20
+    style G fill:#fce4ec,color:#880e4f
+    style H fill:#fce4ec,color:#880e4f
 ```
 
 ---
 
 ## 3. 详细变更分析
 
-### 3.1 核心API系统
+### 🏗️ 3.1 核心架构重构
 
-#### 🧱 BlockAPI - 方块注册API
+#### **PasterDreamMod.java** - 主模组类
 
-**设计模式**：Facade + Builder 模式
+**变更内容**:
+- ✅ 移除手动客户端事件注册代码，避免服务端加载客户端类
+- ✅ 新增流体注册系统（`PDFluids` 和 `PDFluidsType`）
+- ✅ 新增遗迹结构注册调用（`PDRuinsRegistration.register()`）
+- ✅ 新增药水效果 API 注册（`MobEffectAPI.REGISTRY`）
 
-**核心功能**：
-*   **SimpleBlockBuilder**：批量注册「换皮」基础方块
-*   **VariantSetBuilder**：一键生成建筑变体全家桶（楼梯、台阶、墙、栅栏）
-*   **BatchBlockBuilder**：按编号批量注册同类型方块（花、草、矿石）
-
-**使用示例**：
+**代码变更**:
 ```java
-// 模式一：基础换皮方块
-BlockAPI.registerSimpleBlocks()
-    .add("dyedream_block", Blocks.STONE)
-    .build();
+// ❌ 移除：手动注册客户端事件
+- NeoForge.EVENT_BUS.addListener(PDClientEvents::onClientTick);
+- NeoForge.EVENT_BUS.addListener(DyeDreamSkyRenderer::onRenderLevelStage);
 
-// 模式二：建筑变体族
-BlockAPI.createVariantSet("dyedream_planks", Blocks.OAK_PLANKS)
-    .withStairs().withSlab().withFence().build();
+// ✅ 新增：注释说明改为注解自动注册
++ // 客户端 Tick 事件和极光天幕渲染器通过 @EventBusSubscriber(Dist.CLIENT)
++ // 在 PDClientEvents 和 DyeDreamSkyRenderer 中自动注册，避免服务端类加载
 
-// 模式三：批量花/草
-BlockAPI.batchRegister("flower")
-    .indexList(1, 2, 3, 5, 6, 8, 9, 13, 14, 15, 16, 17)
-    .factory(index -> new DyedreamFlowerBlock(...))
-    .build();
-```
+// ✅ 新增：注册流体
++ PDFluidsType.FLUID_TYPES.register(modEventBus);
++ PDFluids.FLUIDS.register(modEventBus);
 
-**关键特性**：
-*   自动存储 `BlockConfig` 供数据生成器读取
-*   支持挖掘工具标签配置（axe/pickaxe/shovel/hoe）
-*   支持模型类型配置（cube_all/cube_column/cube_top_bottom/cube_6）
-
----
-
-#### 🌌 DimensionAPI - 维度注册API
-
-**核心功能**：
-*   链式配置维度类型参数（天光、床是否可用、环境光等）
-*   自动生成 `dimension_type.json` 和 `dimension.json`
-*   维度背景音乐注册
-*   大型结构地形协商支持
-
-**使用示例**：
-```java
-DimensionResult dyedreamWorld = DimensionAPI.createDimension("dyedream_world")
-    .natural().hasSkylight().bedWorks()
-    .withAmbientLight(0.5)
-    .minY(-64).height(384)
-    .monsterSpawnLight(0, 7)
-    .withDefaultBlock("minecraft:calcite")
-    .withNoiseSettings("pasterdream:dyedream_world")
-    .build();
-
-// 注册背景音乐
-DimensionAPI.registerDimensionMusic("dyedream_world");
-```
-
-**地形协商系统**：
-*   `StructureTerrainNegotiator`：评估地形适合性
-*   `TerrainAssessment`：地形评估结果
-*   `StructurePlacementRecord`：放置统计记录
-
----
-
-#### 🎭 EntityAPI - 实体注册API
-
-**核心功能**：
-*   链式配置实体属性（分类、尺寸、追踪范围、属性模板）
-*   自动缓存实体结果和属性配置
-*   渲染器和属性注册辅助方法
-
-**使用示例**：
-```java
-EntityResult<ShadowGolemEntity> shadowGolem = EntityAPI.createEntity("shadow_golem")
-    .category(MobCategory.MONSTER)
-    .size(2.2f, 3.5f)
-    .trackingRange(64)
-    .entityClass(ShadowGolemEntity.class)
-    .attributes(ShadowGolemEntity::createAttributes)
-    .build();
-
-// 客户端注册渲染器
-EntityAPI.registerRenderer(event, shadowGolem, ShadowGolemRenderer::new);
-
-// 注册属性
-EntityAPI.registerAttributes(event, shadowGolem);
-```
-
-**缓存机制**：
-*   `ENTITY_CACHE`：实体结果缓存
-*   `ATTRIBUTES_CACHE`：属性Supplier缓存
-*   `SPAWN_EGG_COLORS`：生成蛋颜色缓存
-
----
-
-#### ✨ ParticleAPI - 粒子注册API
-
-**核心功能**：
-*   链式配置粒子属性（是否始终显示、纹理、重力等）
-*   自动生成 `particles/*.json` 和纹理元数据
-*   Provider注册辅助（精灵表模式）
-
-**使用示例**：
-```java
-ParticleResult sparkle = ParticleAPI.createParticle("sparkle")
-    .alwaysShow()
-    .texture("pasterdream:sparkle")
-    .withGravity(0.05f)
-    .build();
-
-// 注册Provider
-ParticleAPI.registerProviderSprite(event, "sparkle", SparkleParticle.Provider::new);
+// ✅ 新增：注册遗迹结构
++ PDRuinsRegistration.register();
 ```
 
 ---
 
-#### 🏛️ RuinAPI - 遗迹/结构注册API
+### ✨ 3.2 新增 API 系统
 
-**核心功能**：
-*   链式配置结构类型（生物群系、模板池、地形适应等）
-*   结构集配置（间距、分离值、盐值）
-*   模板池JSON生成
-*   大型结构诊断功能
+#### **MobEffectAPI.java** - 药水效果注册 API
 
-**使用示例**：
+**功能描述**: 全新的药水效果注册系统，采用 Facade + Builder 模式，支持：
+- 链式配置效果属性
+- 着色器支持
+- 粒子联动
+- 回调系统（应用/移除时执行自定义逻辑）
+- 效果叠加交互
+
+**使用示例**:
 ```java
-RuinResult result = RuinAPI.createRuin("dyedream_ruins")
-    .biomeTag("pasterdream:is_dyedream")
-    .templatePool("pasterdream:dyedream_ruins_pool")
-    .structureClass(DyedreamRuinsStructure.class)
-    .codec(DyedreamRuinsStructure.CODEC)
-    .terrainAdaptation(TerrainAdaptation.BEARD_THIN)
-    .build();
-
-// 创建结构集
-RuinAPI.createRuinSet("dyedream_ruins", "dyedream_ruins_set")
-    .spacing(32).separation(8).salt(12345)
+MobEffectResult dreamwish = MobEffectAPI.createEffect("dreamwish_buff")
+    .beneficial()
+    .color(0xFF69B4)
+    .shaderTexture(new ResourceLocation("pasterdream", "shaders/post/dreamwish.json"))
+    .particleType(ParticleTypes.END_ROD)
+    .onApply((entity, amp) -> entity.heal(5))
     .build();
 ```
 
-**诊断功能**：
-```java
-// 打印所有结构生成统计
-RuinAPI.printStructureDiagnostics();
+#### **PDFluids.java & PDFluidsType.java** - 流体注册系统
 
-// 评估地形适合性
-TerrainAssessment assessment = RuinAPI.assessTerrain(
-    "dyedream_ruins", chunkX, chunkZ, level);
+**功能描述**: 使用 NeoForge `DeferredRegister` 模式注册自定义流体
+
+**注册内容**:
+| 流体名称 | 类型 | 属性 |
+|---------|------|------|
+| `meltdream_liquid` | 源流体 | 静止态，amount=8 |
+| `flowing_meltdream_liquid` | 流动流体 | 流动态，amount 随 LEVEL 变化 |
+
+**流体类型属性**:
+- 不可游泳
+- 路径类型：熔岩
+- 光照等级：12
+- 粘度：100
+- 温度：10
+
+#### **PDRuinsRegistration.java** - 遗迹结构注册
+
+**功能描述**: 使用 `RuinAPI` + `JigsawStructure` 注册 6 个遗迹结构
+
+**注册的遗迹**:
+
+| 结构名称 | 生成位置 | 高度 | 间距/分离 | 描述 |
+|---------|---------|------|----------|------|
+| `dream_train` | 染梦维度 | Y=55 | 258/179 | 染梦列车，空中漂浮 |
+| `dyedream_worldtree` | 染梦维度 | Y=-25 | 289/165 | 巨型染梦树，地下生长 |
+| `pinkagaric_house_0~3` | 染梦维度 | Y=-4 | 78/42 | 4 种粉红菇屋 |
+| `struct_dyedream_crack_1` | 主世界 | Y=32 | 37/20 | 染梦裂隙，传送入口 |
+| `desert_cottage_0` | 主世界 | Y=0 | 60/48 | 沙漠小屋 |
+
+---
+
+### 🧱 3.3 方块构建器增强
+
+#### **BatchBlockBuilder.java** - 批量方块构建器
+
+**新增功能**: `mineable()` 方法
+
+**作用**: 批量设置所有方块所需的工具类型，自动注册到对应的 `mineable/*` 标签中
+
+**代码变更**:
+```java
+// ✅ 新增字段
++ @Nullable
++ private String mineable;
+
+// ✅ 新增方法
++ public BatchBlockBuilder mineable(String mineable) {
++     this.mineable = mineable;
++     return this;
++ }
+
+// ✅ 构建时自动配置
++ BlockConfig config = mineable != null ? BlockConfig.of().mineable(mineable) : null;
++ if (config != null) {
++     BlockAPI.putConfig(fullName, config);
++ }
+```
+
+#### **VariantSetBuilder.java** - 变体方块构建器
+
+**新增功能**: `mineable()` 方法
+
+**作用**: 为所有变体方块（楼梯、台阶、墙、栅栏等）统一配置挖掘工具类型
+
+**代码变更**:
+```java
+// ✅ 新增字段
++ @Nullable
++ private String mineable;
+
+// ✅ 新增方法
++ public VariantSetBuilder mineable(String mineable) {
++     this.mineable = mineable;
++     return this;
++ }
+
+// ✅ 构建时自动配置所有变体
++ if (mineable != null) {
++     BlockConfig config = BlockConfig.of().mineable(mineable);
++     registerVariantConfig(stairs, "_stairs", config);
++     registerVariantConfig(slab, "_slab", config);
++     registerVariantConfig(wall, "_wall", config);
++     // ... 其他变体
++ }
 ```
 
 ---
 
-### 3.2 WorldDecorationAPI - 装饰物生成系统
+### 📦 3.4 物品注册重构
 
-#### 🎨 装饰物类型
+#### **PDItems.java** - 大规模物品迁移
 
-| 类型 | 说明 | 典型应用 |
-|------|------|----------|
-| `SPIKE` | 圆形截面锥形尖刺 | 冰刺、冰晶丛 |
-| `PILLAR` | 方形截面锥形柱体 | 方解石柱、冰柱 |
-| `BLOB` | 不规则椭球云团 | 坠云团块 |
-| `GATE` | 双柱+横梁结构 | 冰之门 |
-| `SCATTER` | 地面随机散布 | 冰晶花园 |
-| `AQUATIC` | 水下珊瑚礁 | 珊瑚礁、粉红珊瑚丛 |
-| `CUSTOM` | 自定义生成逻辑 | 冰之门（倒塌变种） |
+**迁移方式**: 使用 `ItemMigrationAPI` 替代手动注册
 
-#### 📋 已注册装饰物清单
+**迁移物品统计**:
 
-| 装饰物名称 | 类型 | 目标群系 | 稀有度 | 特殊功能 |
-|-----------|------|---------|--------|---------|
-| `ice_spike` | SPIKE | biome_dyedream_2 | 2 | 悬空检测、区域重叠检测 |
-| `ice_gate` | CUSTOM | biome_dyedream_2 | 5 | 完整/倒塌双变种 |
-| `calcite_pillar` | PILLAR | biome_dyedream_1 | 3 | 表面嵌入染梦矿物 |
-| `cloudfall_mound_dense` | BLOB | #is_dyedream | 1 | 密集云团 |
-| `cloudfall_mound_sparse` | BLOB | #is_dyedream | 1 | 稀疏云团 |
-| `ice_crystal_garden` | SCATTER | biome_dyedream_2 | 2 | 冰晶散布 |
-| `patch_coral_reef` | AQUATIC | biome_dyedream_3 | 1 | 五种珊瑚块 |
-| `patch_coral_reef_pink` | AQUATIC | biome_dyedream_3 | 1 | 粉色梦幻风格 |
-| `ice_crystal_spike` | SPIKE | biome_dyedream_2 | 1 | 小型冰晶丛 |
-| `ice_pillar` | PILLAR | biome_dyedream_2 | 1 | 高大冰柱 |
-| `underwater_ice_spike` | SPIKE | biome_dyedream_3 | 1 | 水下冰刺 |
-| `sea_ice_mound` | BLOB | biome_dyedream_3 | 1 | 海冰团块 |
+| 类别 | 物品数量 | 示例 |
+|------|---------|------|
+| 食物类 | 5+ | `amber_candy`, `bread_slice`, `cake_base`, `fig` |
+| 饰品类 | 3 | `embryo_ring`, `test_curio` |
+| 简单物品 | 3 | `dream_coin_0`, `dream_coin_1`, `elixir_bottle`, `glassjar` |
+| 唱片类 | 3 | `sweetdream_disc`, `dyedream_world_disc`, `wind_journey_1_disc` |
+| 特殊物品 | 4 | `jungle_spore`, `meltdream_liquid_bucket`, `pinkegg`, `pliers` |
+
+**代码变更示例**:
+```java
+// ❌ 旧方式：手动注册
+- public static final DeferredItem<Item> AMBER_CANDY = ITEMS.register("amber_candy",
+-         () -> new AmberCandyItem(new Item.Properties()));
+
+// ✅ 新方式：使用 ItemMigrationAPI
++ public static final DeferredItem<Item> AMBER_CANDY =
++         ItemMigrationAPI.foodItem("amber_candy")
++                 .nutrition(0).saturationModifier(0f)
++                 .build();
+```
+
+**新增物品**:
+- `DREAM_CAULDRON` - 梦境炼药锅物品
+- `MELTDREAM_CHEST` - 融梦水晶箱（关闭）
+- `MELTDREAM_CHEST_OPEN` - 融梦水晶箱（打开）
+- `JUNGLE_SPORE` - 丛林孢子（食物）
+- `MELTDREAM_LIQUID_BUCKET` - 融梦涌泉桶
+- `PINKEGG` - 粉红蛋
+- `PLIERS` - 钳子（耐久度 160）
 
 ---
 
-### 3.3 数据生成器
+### 🎨 3.5 客户端渲染优化
 
-#### 🏷️ PDBlockTagProvider
+#### **PDClientEvents.java** - 客户端事件处理器
 
-**功能**：自动读取 `BlockAPI.getBlockConfigs()` 中的 `mineable` 配置，生成方块挖掘标签
+**变更内容**:
+- ✅ 使用 `@EventBusSubscriber` 注解自动注册
+- ✅ 新增深海荧光羽毛粒子效果
+- ✅ 新增蘑菇孢子粉尘粒子效果
+- ✅ 性能优化：减少扫描数量、添加区块加载检测、优化高度计算
 
-**支持的标签**：
-*   `minecraft:mineable/axe`
-*   `minecraft:mineable/pickaxe`
-*   `minecraft:mineable/shovel`
-*   `minecraft:mineable/hoe`
-
-**工作流程**：
+**代码变更**:
 ```java
-// 在 PasterDreamMod 构造函数中注册
-modEventBus.addListener(this::gatherData);
+// ✅ 新增注解
++ @EventBusSubscriber(modid = PasterDreamMod.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
++ public class PDClientEvents {
 
-private void gatherData(GatherDataEvent event) {
-    generator.addProvider(event.includeServer(),
-        new PDBlockTagProvider(packOutput, lookupProvider, existingFileHelper));
+// ✅ 新增订阅事件
++ @SubscribeEvent
+  public static void onClientTick(ClientTickEvent.Post event) {
+
+// ✅ 新增暂停检测
++ if (mc.isPaused()) return;
+
+// ✅ 新增粒子效果
++ } else if (BIOME_DYEDREAM_DEEP_OCEAN.equals(currentBiome)) {
++     spawnDeepOceanBioluminescence(mc);
++ } else if (BIOME_DYEDREAM_MUSHROOM_PLAINS.equals(currentBiome)) {
++     spawnMushroomSpores(mc);
++ }
+
+// ✅ 性能优化：减少扫描数量
+- for (int i = 0; i < 10; i++) {
++ for (int i = 0; i < 5; i++) {
+
+// ✅ 性能优化：添加区块加载检测
++ if (!isChunkLoaded(mc, checkPos)) continue;
+
+// ✅ 性能优化：避免昂贵的 getHeight 查询
+- int floorY = mc.level.getHeight(..., (int) spawnX, (int) spawnZ);
++ double playerFloorY = mc.player.getY() - 2.0;
+```
+
+**新增粒子效果**:
+
+| 粒子类型 | 生物群系 | 描述 | 颜色/效果 |
+|---------|---------|------|----------|
+| `feather_white_particle` | 晶莹深海 | 白色荧光羽毛从海面缓缓上浮 | 12帧动画，夜晚发光 |
+| `dyedream_0_particle` | 蘑菇平原 | 暖金色孢子从地面飘散 | 大小脉冲呼吸，横向风漂 |
+
+#### **DyeDreamSkyRenderer.java** - 天空渲染器
+
+**变更内容**:
+- ✅ 使用 `@EventBusSubscriber` 注解自动注册
+
+**代码变更**:
+```java
+// ✅ 新增注解
++ @EventBusSubscriber(modid = PasterDreamMod.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
++ public class DyeDreamSkyRenderer {
+
+// ✅ 新增订阅事件
++ @SubscribeEvent
+  public static void onRenderLevelStage(RenderLevelStageEvent event) {
+```
+
+---
+
+### 🧱 3.6 方块注册扩展
+
+#### **PDBlocks.java** - 方块注册
+
+**新增方块**:
+
+| 方块名称 | 类型 | 特殊属性 |
+|---------|------|---------|
+| `dream_train_structure` | 梦境列车结构 | 右键发送消息，金属音效 |
+| `the_endless_book_of_dream_seekers` | 寻梦者的永恒书卷 | GeckoLib 3D 模型，1 格库存，光照等级 8 |
+| `dream_cauldron` | 梦境炼药锅 | GeckoLib 3D 模型，3 输入槽 + 1 输出槽 |
+| `meltdream_chest` | 融梦水晶箱（关闭） | GeckoLib 动画，三级随机宝藏，光照等级 8 |
+| `meltdream_chest_open` | 融梦水晶箱（打开） | 无动画，可打开 GUI |
+| `meltdream_liquid` | 融梦涌泉流体 | 爆炸抗性 100，tickRate 3 |
+
+**新增移植物方**:
+- 钛系列：`titanium_block`, `raw_titanium_block`, `deepslate_titanium_ore`
+- 熔金系列：`moltengold_block`, `moltengold_ore`
+- 其他：`blackmetal_block`, `charged_amethyst_block`, `wind_iron_block`, `soul_ore`
+- 作物：`crop_0a` ~ `crop_4a`
+- 装饰：`pebble_0`, `shadow_light_0`, `vine_0`, `goldenrod`
+
+**钙华变体系列**:
+- `polished_calcite`, `calcite_tiles`
+- 楼梯、台阶、墙变体
+
+**移除方块**:
+- `stripped_dyedream_log`, `stripped_dyedream_wood` (去皮染梦原木)
+
+---
+
+### 🔧 3.7 Bug 修复
+
+#### **BlockLootAPI.java** - 战利品表生成路径修复
+
+**问题**: 战利品表生成路径拼写错误
+
+**修复**:
+```java
+// ❌ 错误路径
+- Path outputDir = Paths.get(basePath, "data", modId, "loot_tables", "blocks");
+
+// ✅ 正确路径
++ Path outputDir = Paths.get(basePath, "data", modId, "loot_table", "blocks");
+```
+
+#### **LootTableGenerator.java** - 战利志表生成器路径修复
+
+**修复**: 同上，统一修正为 `loot_table` 而非 `loot_tables`
+
+---
+
+### 📝 3.8 新增示例代码
+
+#### **RecipeGenerationDemo.java** - 配方生成示例
+
+**功能**: 演示如何使用 `RecipeGenerator` 生成配方 JSON 文件
+
+**支持的配方类型**:
+1. 有序合成（Shaped）
+2. 无序合成（Shapeless）
+3. 烧炼配方（Smelting / Blasting / Campfire / Smoking）
+4. 切石机配方（Stonecutting）
+
+**生成的配方示例**:
+- 铜工具系列（剑、镐、斧、锹、锄）
+- 食物合成（苹果汁、三明治、面团、西瓜汁）
+- 矿石冶炼（钛锭、熔金锭、面包片）
+- 石英方块加工（砖块、雕纹、平滑、柱状、楼梯、台阶、墙）
+
+---
+
+### 🌊 3.9 流体实现
+
+#### **MeltdreamLiquidFluid.java** - 融梦涌泉流体
+
+**实现方式**: 继承 NeoForge `BaseFlowingFluid`
+
+**流体属性**:
+```java
+public static final Properties PROPERTIES = new Properties(
+    PDFluidsType.MELTDREAM_LIQUID_TYPE,
+    PDFluids.MELTDREAM_LIQUID,
+    PDFluids.FLOWING_MELTDREAM_LIQUID
+)
+.explosionResistance(100f)  // 爆炸抗性 100
+.tickRate(3)                // tick 速率 3
+.bucket(() -> PDItems.MELTDREAM_LIQUID_BUCKET.get())
+.block(() -> PDBlocks.MELTDREAM_LIQUID.get());
+```
+
+**子类**:
+- `Source` - 源流体（静止态，amount=8）
+- `Flowing` - 流动流体（amount 随 LEVEL 变化）
+
+---
+
+### 🚂 3.10 特殊方块实现
+
+#### **DreamTrainStructureBlock.java** - 梦境列车结构方块
+
+**功能**: 装饰性方块，右键点击时发送列车到站提示消息
+
+**代码实现**:
+```java
+@Override
+protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    if (!level.isClientSide()) {
+        player.sendSystemMessage(Component.literal("§6列车即将到站，请做好准备..."));
+    }
+    return InteractionResult.SUCCESS;
 }
 ```
-
----
-
-#### 🎨 PDBlockModelProvider
-
-**功能**：自动读取 `BlockAPI.getBlockConfigs()` 中的 `model/textures` 配置，生成方块状态和模型JSON
-
-**支持的模型类型**：
-| 模型类型 | 纹理配置 | 适用场景 |
-|---------|---------|---------|
-| `cube_all` | `all` | 六面相同纹理的方块 |
-| `cube_column` | `end`, `side` | 原木、柱状方块 |
-| `cube_top_bottom` | `top`, `side`, `bottom` | 上下不同的方块 |
-| `cube_6` | `north`, `south`, `east`, `west`, `up`, `down` | 六面各异的方块 |
-
----
-
-### 3.4 API测试框架
-
-#### 🧪 测试运行器
-
-| 测试类 | 测试内容 | Gradle任务 |
-|--------|---------|-----------|
-| `ParticleApiTestRunner` | 粒子API的Builder链式调用、JSON生成、缓存机制 | `runParticleApiTest` |
-| `EntityApiTestRunner` | 实体API的Builder链式调用、验证逻辑、属性模板 | `runEntityApiTest` |
-| `RuinApiTestRunner` | 遗迹API的Builder链式调用、JSON生成、模板池配置 | `runRuinApiTest` |
-| `RunAllApiTests` | 一键运行所有API测试并汇总结果 | `runAllApiTests` |
-
----
-
-### 3.5 Gradle构建系统增强
-
-#### 📦 新增Gradle任务
-
-| 任务名称 | 功能 | 入口类 |
-|---------|------|--------|
-| `runDimensionApiDemo` | 运行DimensionAPI示例程序 | `DimensionApiDemo` |
-| `generateDimensionTestJsons` | 生成维度API测试JSON文件 | `DimensionJsonGenerator` |
-| `runParticleApiTest` | 运行ParticleAPI测试 | `ParticleApiTestRunner` |
-| `runEntityApiTest` | 运行EntityAPI测试 | `EntityApiTestRunner` |
-| `runRuinApiTest` | 运行RuinAPI测试 | `RuinApiTestRunner` |
-| `runAllApiTests` | 运行所有API测试 | `RunAllApiTests` |
-
-**使用方式**：
-```bash
-# 运行单个API测试
-./gradlew runParticleApiTest
-
-# 运行所有API测试
-./gradlew runAllApiTests
-
-# 生成维度测试JSON
-./gradlew generateDimensionTestJsons
-```
-
----
-
-### 3.6 主类重构
-
-#### 🔄 PasterDreamMod.java 变更
-
-**移除的组件**：
-*   ❌ `MeltDreamEnergyCapability` - 融梦能量能力系统
-*   ❌ `SanCapability` - 理智值能力系统
-*   ❌ `PDClientConfig` / `PDCommonConfig` - 配置文件系统
-*   ❌ `PDBiomeModifiers` - 生物群系修饰符序列化器
-
-**新增的组件**：
-*   ✅ `ItemMigrationAPI.REGISTRY` - 物品移植API注册器
-*   ✅ `RuinAPI.REGISTRY` - 遗迹API注册器
-*   ✅ `PDFeatures.FEATURES` - 自定义特征注册器
-*   ✅ `DecorationRegistry.FEATURES` - 装饰物特征注册器
-*   ✅ `PDSounds.SOUND_EVENTS` - 声音事件注册器
-*   ✅ `gatherData()` - 数据生成事件处理
-*   ✅ `DyeDreamSkyRenderer` - 染梦维度极光天幕渲染器
-*   ✅ `PDClientEvents` - 客户端Tick事件
-
-**关键代码变更**：
-```java
-// 新增数据生成事件监听
-modEventBus.addListener(this::gatherData);
-
-private void gatherData(final GatherDataEvent event) {
-    DataGenerator generator = event.getGenerator();
-    var packOutput = generator.getPackOutput();
-    var lookupProvider = event.getLookupProvider();
-    var existingFileHelper = event.getExistingFileHelper();
-
-    generator.addProvider(event.includeServer(),
-        new PDBlockTagProvider(packOutput, lookupProvider, existingFileHelper));
-
-    generator.addProvider(event.includeClient(),
-        new PDBlockModelProvider(packOutput, existingFileHelper));
-}
-```
-
----
-
-### 3.7 语言文件扩展
-
-#### 📝 新增物品翻译
-
-**武器类（16种）**：
-| 物品ID | 中文名 | 英文名 |
-|--------|--------|--------|
-| `broken_hero_sword` | 断裂英雄剑 | Broken Hero Sword |
-| `copper_sword` | 铜剑 | Copper Sword |
-| `creative_sword` | §4调试之剑 | Creative Sword |
-| `desert_sword` | §e朔漠大剑 | Desert Sword |
-| `dyedream_sword_0` | §e极锋染梦合金剑 | Dyedream Sword |
-| `dyedream_sword` | 染梦合金剑 | Dyedream Sword |
-| `grass_sword` | §e草薙 | Grass Sword |
-| `iceshadow_hammer` | §e冰影战锤 | Iceshadow Hammer |
-| `moltengold_sword` | 炙焰金剑 | Moltengold Sword |
-| `shadow_erosion_sword` | §e影蚀匕首 | Shadow Erosion Sword |
-| `shadow_sword` | §e影刃 | Shadow Sword |
-| `terra_sword` | §e大地之刃 | Terra Sword |
-| `thermal_dagger` | 热能匕首 | Thermal Dagger |
-| `tide_sword` | §e引潮剑 | Tide Sword |
-| `titanium_sword` | 钛金剑 | Titanium Sword |
-| `white_sword` | §e白厄剑 | White Sword |
-
-**工具类（8种）**：
-| 物品ID | 中文名 | 英文名 |
-|--------|--------|--------|
-| `copper_pickaxe` | 铜镐 | Copper Pickaxe |
-| `dyedream_hammer` | §e染梦合金锤 | Dyedream Hammer |
-| `dyedream_pickaxe` | §e染梦合金镐 | Dyedream Pickaxe |
-| `meltdream_pickaxe` | §b融梦水晶镐 | Meltdream Pickaxe |
-| `moltengold_pickaxe` | 炙焰金镐 | Moltengold Pickaxe |
-| `shadow_erosion_pickaxe` | §e影蚀镐 | Shadow Erosion Pickaxe |
-| `titanium_pickaxe` | 钛金镐 | Titanium Pickaxe |
-| `true_moltengold_pickaxe` | 狱炎镐 | True Moltengold Pickaxe |
-
-**音乐唱片（9种）**：
-| 物品ID | 中文名 | 英文名 |
-|--------|--------|--------|
-| `sweetdream_disc` | 音乐唱片 - 甜蜜的梦 | Sweetdream Disc |
-| `snowfalldream_disc` | 音乐唱片 - 落雪之梦 | Snowfalldream Disc |
-| `aaroncos_disc` | 音乐唱片 - 亚伦柯斯之触 | Aaroncos Disc |
-| `wind_journey_disc` | 音乐唱片 - 风之旅途 | Wind Journey Disc |
-| `dream_meadow_disc` | 音乐唱片 - 梦之原野 | Dream Meadow Disc |
-| `dream_heath_disc` | 音乐唱片 - 梦之石楠 | Dream Heath Disc |
-| `dream_taiga_disc` | 音乐唱片 - 梦之泰加 | Dream Taiga Disc |
-| `dream_delta_disc` | 音乐唱片 - 梦之三角洲 | Dream Delta Disc |
-
----
-
-### 3.8 版本与配置变更
-
-#### 📦 版本升级
-
-| 配置项 | 旧值 | 新值 | 说明 |
-|--------|------|------|------|
-| `mod_version` | `0.0.1` | `0.0.3` | 模组版本升级 |
-
-#### 🏷️ 物品重命名
-
-| 旧名称 | 新名称 | 原因 |
-|--------|--------|------|
-| `yinhul_cotton_candy` | `silver_fox_cotton_candy` | 统一命名规范 |
 
 ---
 
 ## 4. 影响与风险评估
 
-### ⚠️ 破坏性变更
+### ⚠️ 4.1 破坏性变更
 
-| 变更类型 | 影响范围 | 说明 |
-|---------|---------|------|
-| **能力系统移除** | 高 | `MeltDreamEnergyCapability` 和 `SanCapability` 已完全移除，依赖这些系统的功能将失效 |
-| **配置系统移除** | 中 | `PDClientConfig` 和 `PDCommonConfig` 已移除，所有配置需重新实现 |
-| **物品重命名** | 低 | `yinhul_cotton_candy` 重命名为 `silver_fox_cotton_candy`，可能影响存档兼容性 |
+| 变更类型 | 影响范围 | 风险等级 | 说明 |
+|---------|---------|---------|------|
+| 客户端事件注册方式 | `PasterDreamMod.java` | 🟡 中 | 从手动注册改为注解注册，需确保 `@EventBusSubscriber` 正确配置 |
+| 物品注册方式 | `PDItems.java` | 🟡 中 | 20+ 物品改用 `ItemMigrationAPI`，需验证物品功能正常 |
+| 战利志表路径 | `BlockLootAPI.java` | 🟢 低 | 路径拼写修正，不影响运行时（仅影响生成） |
+| 移除方块 | `PDBlocks.java` | 🟡 中 | 移除去皮染梦原木，需确认无引用 |
 
-### 🧪 测试建议
+### 🧪 4.2 测试建议
 
-1.  **API功能测试**：
-    *   运行 `./gradlew runAllApiTests` 验证所有API注册逻辑
-    *   检查数据生成器是否正确生成方块标签和模型JSON
+**核心功能测试**:
+- ✅ 验证客户端事件正常触发（粒子、天空渲染、音乐管理）
+- ✅ 验证药水效果 API 注册和功能
+- ✅ 验证流体系统（放置、流动、桶装）
+- ✅ 验证遗迹结构生成（染梦维度和主世界）
 
-2.  **装饰物生成测试**：
-    *   进入染梦维度，验证12种装饰物是否正确生成
-    *   检查冰之门的双变种（完整/倒塌）是否按预期出现
+**物品/方块测试**:
+- ✅ 验证迁移的 20+ 物品功能正常
+- ✅ 验证新增方块（梦境列车、炼药锅、融梦水晶箱）
+- ✅ 验证挖掘工具类型配置（Jade 模组显示）
+- ✅ 验证钙华变体系列方块
 
-3.  **语言文件测试**：
-    *   验证所有新增物品的中英文翻译是否正确显示
-    *   检查音乐唱片的描述和字幕是否正常
+**性能测试**:
+- ✅ 测试深海和蘑菇平原粒子性能
+- ✅ 测试区块加载检测优化效果
+- ✅ 测试暂停时粒子生成优化
 
-4.  **兼容性测试**：
-    *   测试旧存档中 `yinhul_cotton_candy` 是否正确转换为 `silver_fox_cotton_candy`
-    *   验证移除的能力系统不会导致游戏崩溃
-
-### 📊 性能影响
-
-*   **正面影响**：数据生成器自动生成资源文件，减少手动维护成本
-*   **潜在风险**：装饰物生成系统增加了世界生成时的计算量，需关注生成性能
+**兼容性测试**:
+- ✅ 服务端启动测试（确保不加载客户端类）
+- ✅ 客户端启动测试（确保事件正常注册）
+- ✅ 多人联机测试
 
 ---
 
 ## 5. 总结
 
-本次变更是一次**大规模架构重构**，核心目标是：
+本次代码变更是一次**大规模的功能扩展和架构优化**，主要亮点包括：
 
-1.  **统一API设计**：通过5大API系统（Block/Dimension/Entity/Particle/Ruin）实现一致的注册体验
-2.  **自动化数据生成**：引入数据生成器，自动生成方块标签、模型等资源文件
-3.  **装饰物系统**：新增WorldDecorationAPI，支持12种装饰物的灵活配置
-4.  **测试框架**：提供完整的API测试套件，确保代码质量
+1. **架构现代化**: 客户端事件从手动注册改为注解注册，符合 NeoForge 最佳实践
+2. **API 体系完善**: 新增药水效果、流体、遗迹结构三大 API 系统
+3. **构建器增强**: 批量方块和变体方块构建器支持挖掘工具类型配置
+4. **内容丰富**: 新增 20+ 物品、30+ 方块、6 个遗迹结构、2 种粒子效果
+5. **性能优化**: 粒子生成性能优化，减少区块加载和高度查询开销
+6. **Bug 修复**: 修正战利志表生成路径拼写错误
 
-**建议后续工作**：
-*   为移除的能力系统提供迁移指南或替代方案
-*   补充装饰物系统的文档和使用示例
-*   考虑为数据生成器添加更多自定义选项
+**建议**: 在合并前进行全面的功能测试和性能测试，特别是客户端事件注册和流体系统的稳定性。

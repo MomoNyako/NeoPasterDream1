@@ -1,7 +1,5 @@
 package com.pasterdream.pasterdreammod;
 
-import com.pasterdream.pasterdreammod.client.DyeDreamSkyRenderer;
-import com.pasterdream.pasterdreammod.client.PDClientEvents;
 import com.pasterdream.pasterdreammod.command.PDCommands;
 import com.pasterdream.pasterdreammod.data.PDBlockModelProvider;
 import com.pasterdream.pasterdreammod.data.PDBlockTagProvider;
@@ -20,6 +18,7 @@ import com.pasterdream.pasterdreammod.registry.PDMenus;
 import com.pasterdream.pasterdreammod.registry.ModDecorations;
 import com.pasterdream.pasterdreammod.registry.PDRuinsRegistration;
 import com.pasterdream.pasterdreammod.api.block.BlockAPI;
+import com.pasterdream.pasterdreammod.api.effect.MobEffectAPI;
 import com.pasterdream.pasterdreammod.api.ruin.RuinAPI;
 import com.pasterdream.pasterdreammod.registry.PDParticles;
 import com.pasterdream.pasterdreammod.registry.PDSounds;
@@ -78,8 +77,9 @@ public class PasterDreamMod {
         // 注册创造模式物品栏
         PDCreativeTabs.TABS.register(modEventBus);
 
-        // 注册状态效果（BUFF/DEBUFF）
+        // 注册状态效果（BUFF/DEBUFF）—— 同时支持旧版 PDEffects 和新版 MobEffectAPI
         PDEffects.MOB_EFFECTS.register(modEventBus);
+        MobEffectAPI.REGISTRY.register(modEventBus);
 
         // 注册自定义声音事件（包括维度背景音乐）
         PDSounds.SOUND_EVENTS.register(modEventBus);
@@ -123,11 +123,8 @@ public class PasterDreamMod {
         // 在游戏总线上注册指令
         NeoForge.EVENT_BUS.addListener(PDCommands::register);
 
-        // 在游戏总线上注册客户端 Tick 事件（染梦维度环境粒子生成）
-        NeoForge.EVENT_BUS.addListener(PDClientEvents::onClientTick);
-
-        // 在游戏总线上注册染梦维度极光天幕渲染器
-        NeoForge.EVENT_BUS.addListener(DyeDreamSkyRenderer::onRenderLevelStage);
+        // 客户端 Tick 事件和极光天幕渲染器通过 @EventBusSubscriber(Dist.CLIENT)
+        // 在 PDClientEvents 和 DyeDreamSkyRenderer 中自动注册，避免服务端类加载
     }
 
     /**

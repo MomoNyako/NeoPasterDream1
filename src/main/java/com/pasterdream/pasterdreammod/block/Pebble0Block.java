@@ -80,6 +80,10 @@ public class Pebble0Block extends Block implements SimpleWaterloggedBlock {
 
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        return List.of(new ItemStack(this));
+        List<ItemStack> drops = super.getDrops(state, params);
+        if (drops.isEmpty()) {
+            return List.of(new ItemStack(this));
+        }
+        return drops;
     }
 }

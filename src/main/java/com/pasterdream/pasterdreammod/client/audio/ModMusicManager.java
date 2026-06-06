@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 模组背景音乐管理器 —— 自定义维度的群系BGM交叉淡化过渡
@@ -46,6 +47,16 @@ public class ModMusicManager {
 
     /** 音乐循环间隔 tick 数（60 tick ≈ 3 秒，音乐播完 -> 等待 3 秒 -> 重新播放） */
     private static final int LOOP_INTERVAL_TICKS = 60;
+
+    // ==================== 播放间隔设置 ====================
+
+    /** 同群系内循环间隔范围（1200 ~ 1800 tick = 1 ~ 1.5 分钟） */
+    private static final int SAME_BIOME_MIN_INTERVAL = 1200;
+    private static final int SAME_BIOME_MAX_INTERVAL = 1800;
+
+    /** 群系切换后循环间隔范围（600 ~ 1200 tick = 30 秒 ~ 1 分钟） */
+    private static final int CROSS_BIOME_MIN_INTERVAL = 600;
+    private static final int CROSS_BIOME_MAX_INTERVAL = 1200;
 
     // ==================== 群系音乐映射 ====================
 
@@ -98,6 +109,12 @@ public class ModMusicManager {
 
     /** 循环间隔开始的游戏 tick 数 */
     private long loopRestartStartTick = 0;
+
+    /** 当前循环等待的间隔 tick 数（根据群系是否切换动态计算） */
+    private int loopDelayTicks = LOOP_INTERVAL_TICKS;
+
+    /** 标记当前BGM播放期间是否发生过群系切换（用于决定下次播放的间隔） */
+    private boolean biomeChangedDuringPlay = false;
 
     // ==================== 静态初始化 ====================
 
@@ -216,6 +233,9 @@ public class ModMusicManager {
             return;
         }
 
+        // === 执行BGM去重检测（在每次主逻辑前，修复异常状态） ===
+        dedupBgmSounds();
+
         String musicName = getMusicForBiome(currentBiomeId);
         long gameTick = mc.level.getGameTime();
 
@@ -252,10 +272,12 @@ public class ModMusicManager {
 
         if (biomeChanged) {
             if (musicName != null && musicName.equals(currentMusicName)) {
-                // 音乐相同 → 不切换也不进入冷却
+                // 音乐相同 → 不切换也不进入冷却，但标记群系已变化
+                biomeChangedDuringPlay = true;
                 return;
             }
-            // 进入切换冷却期
+            // 进入切换冷却期 + 标记群系已变化
+            biomeChangedDuringPlay = true;
             isInCooldown = true;
             pendingBiomeId = currentBiomeId;
             pendingMusicName = musicName;
@@ -270,14 +292,25 @@ public class ModMusicManager {
         }
 
         // ==================== 循环重播检测 ====================
-        // 当非循环 BGM 播放完毕后，等待 LOOP_INTERVAL_TICKS 后重新播放
+        // BGM 播放完毕后，根据群系是否切换选择间隔后重新播放
         if (fadeState == FadeState.IDLE && currentMusicName != null
                 && currentSound != null && !isInCooldown) {
             if (!Minecraft.getInstance().getSoundManager().isActive(currentSound)) {
                 if (!isWaitingForLoopRestart) {
                     isWaitingForLoopRestart = true;
                     loopRestartStartTick = gameTick;
-                } else if (gameTick - loopRestartStartTick >= LOOP_INTERVAL_TICKS) {
+                    // 根据群系是否切换过选择间隔范围
+                    if (biomeChangedDuringPlay) {
+                        loopDelayTicks = CROSS_BIOME_MIN_INTERVAL
+                                + ThreadLocalRandom.current().nextInt(
+                                        CROSS_BIOME_MAX_INTERVAL - CROSS_BIOME_MIN_INTERVAL + 1);
+                    } else {
+                        loopDelayTicks = SAME_BIOME_MIN_INTERVAL
+                                + ThreadLocalRandom.current().nextInt(
+                                        SAME_BIOME_MAX_INTERVAL - SAME_BIOME_MIN_INTERVAL + 1);
+                    }
+                    biomeChangedDuringPlay = false;
+                } else if (gameTick - loopRestartStartTick >= loopDelayTicks) {
                     isWaitingForLoopRestart = false;
                     restartCurrentMusic();
                 }
@@ -310,6 +343,13 @@ public class ModMusicManager {
      */
     private void handleCrossfade(String newMusicName) {
         if (newMusicName != null && newMusicName.equals(currentMusicName)) {
+            return;
+        }
+
+        // 去重检测：目标音乐已在播放中（如淡出和当前同名）→ 跳过
+        if (isBgmActive(newMusicName)) {
+            PasterDreamMod.LOGGER.warn(
+                    "[ModMusicManager] 交叉淡化跳过: {} 已在播放中", newMusicName);
             return;
         }
 
@@ -359,6 +399,11 @@ public class ModMusicManager {
      */
     private void startMusicDirect(String musicName) {
         if (musicName == null) return;
+        // 去重检测：已在播放中 → 跳过，避免多重实例
+        if (isBgmActive(musicName)) {
+            PasterDreamMod.LOGGER.debug("[ModMusicManager] 直接播放跳过: {} 已在播放中", musicName);
+            return;
+        }
         stopAllMusic();
         SoundEvent soundEvent = lookupSoundEvent(musicName);
         if (soundEvent == null) return;
@@ -370,10 +415,15 @@ public class ModMusicManager {
     /**
      * 重新播放当前音乐（循环重播用）
      * <p>
-     * 当非循环 BGM 播放完毕、经过 LOOP_INTERVAL_TICKS 后调用此方法。
+     * 当非循环 BGM 播放完毕、经过间隔延迟后调用此方法。
      */
     private void restartCurrentMusic() {
         if (currentMusicName == null) return;
+        // 去重检测：已在播放中 → 跳过
+        if (isBgmActive(currentMusicName)) {
+            PasterDreamMod.LOGGER.debug("[ModMusicManager] 循环重播跳过: {} 仍在活跃中", currentMusicName);
+            return;
+        }
         if (currentSound != null) {
             Minecraft.getInstance().getSoundManager().stop(currentSound);
             currentSound = null;
@@ -419,5 +469,74 @@ public class ModMusicManager {
         pendingBiomeId = null;
         pendingMusicName = null;
         isWaitingForLoopRestart = false;
+    }
+
+    // ==================== BGM去重检测与修复 ====================
+
+    /**
+     * BGM 去重检测器
+     * <p>
+     * 在每次 tick 中调用，检测并修复以下重复播放场景：
+     * <ul>
+     *   <li><b>场景1 — 交叉淡化同名冲突</b>：fadingOutSound 和 currentSound
+     *       播放的是同一首BGM（如两个群系映射了相同的音乐），导致交叉淡化时同曲重叠</li>
+     *   <li><b>场景2 — 状态不一致</b>：currentSound 已停止但 currentMusicName 未清除，
+     *       导致下次循环重播触发错误的逻辑</li>
+     * </ul>
+     * 修复策略：强制停止多余实例/状态重置 + 日志记录。
+     */
+    private void dedupBgmSounds() {
+        Minecraft mc = Minecraft.getInstance();
+
+        // === 场景1：currentSound 和 fadingOutSound 播放同名BGM ===
+        // 交叉淡化本应为不同曲目设计，同名BGM不应进入淡出状态
+        if (currentSound != null && fadingOutSound != null
+                && fadingOutMusicName != null && currentMusicName != null
+                && fadingOutMusicName.equals(currentMusicName)) {
+            PasterDreamMod.LOGGER.warn(
+                    "[ModMusicManager] 检测到BGM重复播放[同名交叉淡化]: {}, 强制停止淡出实例",
+                    currentMusicName);
+            mc.getSoundManager().stop(fadingOutSound);
+            fadingOutSound = null;
+            fadingOutMusicName = null;
+            if (fadeState == FadeState.FADING) {
+                fadeState = FadeState.IDLE;
+                crossfadeStep = 0;
+            }
+        }
+
+        // === 场景2：currentSound 已失效但 currentMusicName 残留 ===
+        if (currentSound == null && currentMusicName != null && fadingOutSound == null) {
+            PasterDreamMod.LOGGER.warn(
+                    "[ModMusicManager] 检测到状态不一致: currentSound=null, musicName={}, 正在重置状态",
+                    currentMusicName);
+            currentMusicName = null;
+            fadeState = FadeState.IDLE;
+            isWaitingForLoopRestart = false;
+        }
+
+        // === 场景3：fadingOutSound 已失效但 fadingOutMusicName 残留 ===
+        if (fadingOutSound == null && fadingOutMusicName != null) {
+            fadingOutMusicName = null;
+            if (fadeState == FadeState.FADING) {
+                fadeState = FadeState.IDLE;
+                crossfadeStep = 0;
+            }
+        }
+    }
+
+    /**
+     * 检查指定BGM是否正在播放中
+     * <p>
+     * 在播放新BGM前调用此方法，避免同一首BGM被多次实例化。
+     *
+     * @param musicName 要检查的音乐名称
+     * @return 如果该音乐当前正在播放（含淡出中）返回 true
+     */
+    private boolean isBgmActive(String musicName) {
+        if (musicName == null) return false;
+        if (musicName.equals(currentMusicName) && currentSound != null) return true;
+        if (musicName.equals(fadingOutMusicName) && fadingOutSound != null) return true;
+        return false;
     }
 }

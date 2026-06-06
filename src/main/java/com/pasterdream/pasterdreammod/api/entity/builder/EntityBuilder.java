@@ -3,6 +3,7 @@ package com.pasterdream.pasterdreammod.api.entity.builder;
 import com.pasterdream.pasterdreammod.PasterDreamMod;
 import com.pasterdream.pasterdreammod.api.entity.EntityAPI;
 import com.pasterdream.pasterdreammod.api.entity.EntityResult;
+import com.pasterdream.pasterdreammod.api.entity.skill.EntitySkill;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -12,6 +13,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -61,6 +64,9 @@ public class EntityBuilder<T extends Entity> {
 
     @Nullable
     private Integer spawnEggHighlightColor;
+
+    /** 实体技能列表 */
+    private final List<EntitySkill> skills = new ArrayList<>();
 
     /**
      * 构造实体构建器
@@ -221,6 +227,53 @@ public class EntityBuilder<T extends Entity> {
                 name, Integer.toHexString(backgroundColor), Integer.toHexString(highlightColor));
         return this;
     }
+    
+    // ======================== 技能 ========================
+
+    /**
+     * 为实体注册一个技能
+     * <p>
+     * 技能包含动画、伤害、范围、冷却、粒子效果和音效等配置。
+     * 使用 {@link EntitySkill#builder(String)} 创建技能定义。
+     * <p>
+     * 使用示例：
+     * <pre>{@code
+     * EntityAPI.createEntity("shadow_golem")
+     *     .category(MobCategory.MONSTER)
+     *     .size(2.2f, 3.5f)
+     *     .entityClass(ShadowGolemEntity.class)
+     *     .attributes(ShadowGolemEntity::createAttributes)
+     *     .skill(EntitySkill.builder("dash_attack")
+     *         .animationName("dash")
+     *         .damage(10.0f).range(5.0f).cooldownTicks(100)
+     *         .particle("sparkle")
+     *         .sound("pasterdream:dash")
+     *         .build())
+     *     .build();
+     * }</pre>
+     *
+     * @param skill 技能定义
+     * @return 当前构建器实例
+     */
+    public EntityBuilder<T> skill(EntitySkill skill) {
+        this.skills.add(skill);
+        PasterDreamMod.LOGGER.debug("[EntityBuilder] {} → 添加技能: {} | skills.count={}", name, skill.name(), this.skills.size());
+        return this;
+    }
+
+    /**
+     * 为实体批量注册多个技能
+     *
+     * @param skills 技能定义数组
+     * @return 当前构建器实例
+     */
+    public EntityBuilder<T> skills(EntitySkill... skills) {
+        for (EntitySkill skill : skills) {
+            this.skills.add(skill);
+        }
+        PasterDreamMod.LOGGER.debug("[EntityBuilder] {} → 批量添加技能: {} 个 | skills.count={}", name, skills.length, this.skills.size());
+        return this;
+    }
 
     // ======================== 构建 ========================
 
@@ -276,6 +329,14 @@ public class EntityBuilder<T extends Entity> {
             EntityAPI.cacheSpawnEgg(name, spawnEggBackgroundColor, spawnEggHighlightColor);
         } else {
             PasterDreamMod.LOGGER.debug("[EntityBuilder] 未配置生成蛋颜色，跳过: {}", name);
+        }
+
+        // 缓存技能
+        if (!skills.isEmpty()) {
+            PasterDreamMod.LOGGER.debug("[EntityBuilder] 缓存实体技能: {} 个技能", skills.size());
+            EntityAPI.cacheSkills(name, skills);
+        } else {
+            PasterDreamMod.LOGGER.debug("[EntityBuilder] 未配置技能，跳过技能缓存: {}", name);
         }
 
         PasterDreamMod.LOGGER.info("[EntityBuilder] ✅ 已注册实体: {} (尺寸: {}x{}, 分类: {}, 追踪范围: {})",

@@ -101,8 +101,6 @@ public class PDCreativeTabs {
                         // 树木与木板
                         output.accept(PDBlocks.DYEDREAM_LOG.get());
                         output.accept(PDBlocks.DYEDREAM_WOOD.get());
-                        output.accept(PDBlocks.STRIPPED_DYEDREAM_LOG.get());
-                        output.accept(PDBlocks.STRIPPED_DYEDREAM_WOOD.get());
                         output.accept(PDBlocks.DYEDREAM_LEAVES.get());
                         output.accept(PDBlocks.DYEDREAM_WORLDTREE_LEAVES.get());
                         output.accept(PDBlocks.DYEDREAM_PLANKS.get());
@@ -626,6 +624,8 @@ public class PDCreativeTabs {
                         output.accept(PDItems.DEBUG_WAND_PINKAGARIC_1.get());
                         output.accept(PDItems.DEBUG_WAND_PINKAGARIC_2.get());
                         output.accept(PDItems.DEBUG_WAND_PINKAGARIC_3.get());
+                        output.accept(PDItems.DEBUG_WAND_DYEDREAM_CRACK.get());
+                        output.accept(PDItems.DEBUG_WAND_DESERT_COTTAGE.get());
                         output.accept(PDItems.DEBUG_WAND_CLOUD_BUBBLE.get());
                         output.accept(PDItems.DEBUG_WAND_FLOATING_ICE_MOUND.get());
                         output.accept(PDItems.DEBUG_WAND_ICE_ARCH.get());
@@ -652,7 +652,6 @@ public class PDCreativeTabs {
                         output.accept(PDItems.DEBUG_WAND_LOTUS.get());
                         output.accept(PDItems.DEBUG_WAND_LILY_PAD.get());
                         output.accept(PDItems.DEBUG_WAND_PINKAGARIC.get());
-                        output.accept(PDItems.DEBUG_WAND_ROCK.get());
                     })
                     .build());
 

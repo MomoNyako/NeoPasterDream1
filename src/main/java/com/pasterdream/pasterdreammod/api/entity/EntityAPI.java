@@ -2,17 +2,17 @@ package com.pasterdream.pasterdreammod.api.entity;
 
 import com.pasterdream.pasterdreammod.PasterDreamMod;
 import com.pasterdream.pasterdreammod.api.entity.builder.EntityBuilder;
+import com.pasterdream.pasterdreammod.api.entity.skill.EntitySkill;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -21,6 +21,9 @@ import java.util.function.Supplier;
  * <p>
  * 采用与 {@link com.pasterdream.pasterdreammod.api.block.BlockAPI} 相似的
  * Facade 模式 + Builder 模式设计，覆盖实体注册的完整流程。
+ * <p>
+ * 注意：此类不包含任何客户端专属类型引用，确保服务端兼容。
+ * 客户端渲染器注册请直接使用 {@code EntityRenderersEvent.RegisterRenderers} 事件。
  * <p>
  * 使用示例：
  * <pre>{@code
@@ -34,7 +37,9 @@ import java.util.function.Supplier;
  *     .build();
  *
  * // ====== 在 ClientSetup 中注册渲染器 ======
- * EntityAPI.registerRenderer(event, shadowGolem, ShadowGolemRenderer::new);
+ * EntityResult<ShadowGolemEntity> result = (EntityResult<ShadowGolemEntity>)
+ *     EntityAPI.getEntityResult("shadow_golem");
+ * event.registerEntityRenderer(result.entityType(), ShadowGolemRenderer::new);
  *
  * // ====== 在 PDEntityEvents 中注册属性 ======
  * EntityAPI.registerAttributes(event, shadowGolem);
@@ -63,6 +68,9 @@ public final class EntityAPI {
     /** 生成蛋颜色缓存 —— 注册名 → [背景色, 高光色] */
     private static final Map<String, int[]> SPAWN_EGG_COLORS = new HashMap<>();
 
+    /** 实体技能缓存 —— 注册名 → 技能列表 */
+    private static final Map<String, List<EntitySkill>> ENTITY_SKILLS = new HashMap<>();
+
     private EntityAPI() {
         throw new UnsupportedOperationException("EntityAPI 是纯静态门面类，不可实例化");
     }
@@ -79,59 +87,8 @@ public final class EntityAPI {
      * @return {@link EntityBuilder} 实例
      */
     public static EntityBuilder<?> createEntity(String name) {
-        PasterDreamMod.LOGGER.info("[EntityAPI] 🎭 开始创建实体构建器: {}", name);
+        PasterDreamMod.LOGGER.info("[EntityAPI] 开始创建实体构建器: {}", name);
         return new EntityBuilder<>(REGISTRY, PasterDreamMod.MOD_ID, name);
-    }
-
-    // ======================== 渲染器注册 ========================
-
-    /**
-     * 注册实体渲染器（客户端）
-     * <p>
-     * 需要在 {@link RegisterRenderers} 事件中调用。
-     *
-     * @param <T>      实体类型
-     * @param event    {@link RegisterRenderers}
-     * @param result   之前由 {@link #createEntity(String)} 返回的结果
-     * @param provider 实体渲染器提供者（如 {@code ShadowGolemRenderer::new}）
-     */
-    @SuppressWarnings("unchecked")
-    public static <T extends Entity> void registerRenderer(
-            RegisterRenderers event,
-            EntityResult<T> result,
-            net.minecraft.client.renderer.entity.EntityRendererProvider<? super T> provider) {
-        PasterDreamMod.LOGGER.info("[EntityAPI] 🎨 注册实体渲染器: {} | entityType={}", result.name(), result.entityType());
-        event.registerEntityRenderer(
-                (EntityType<T>) result.entityType(),
-                provider);
-        PasterDreamMod.LOGGER.info("[EntityAPI] ✅ 已注册实体渲染器: {}", result.name());
-    }
-
-    /**
-     * 按实体名称注册实体渲染器（客户端）
-     * <p>
-     * 便捷重载，自动根据实体名称查找已注册的 {@link EntityResult}。
-     * 需要在 {@link RegisterRenderers} 事件中调用。
-     *
-     * @param <T>        实体类型
-     * @param event      {@link RegisterRenderers}
-     * @param entityName 实体注册名称（与 {@link #createEntity(String)} 传入的名称一致）
-     * @param provider   实体渲染器提供者（如 {@code ShadowGolemRenderer::new}）
-     * @throws IllegalStateException 如果未找到对应的实体注册结果
-     */
-    @SuppressWarnings("unchecked")
-    public static <T extends Entity> void registerRenderer(
-            RegisterRenderers event,
-            String entityName,
-            net.minecraft.client.renderer.entity.EntityRendererProvider<? super T> provider) {
-        PasterDreamMod.LOGGER.debug("[EntityAPI] 🔍 按名称查找实体注册结果: {}", entityName);
-        EntityResult<T> result = (EntityResult<T>) ENTITY_CACHE.get(entityName);
-        if (result == null) {
-            PasterDreamMod.LOGGER.error("[EntityAPI] ❌ 未找到实体 [{}] 的注册结果", entityName);
-            throw new IllegalStateException("EntityAPI: 未找到实体 [" + entityName + "] 的注册结果，请确认已调用 createEntity().build()");
-        }
-        PasterDreamMod.LOGGER.debug("[EntityAPI] 找到实体 [{}] 的注册结果: {}", entityName, result);
-        registerRenderer(event, result, provider);
     }
 
     // ======================== 属性注册 ========================
@@ -264,6 +221,56 @@ public final class EntityAPI {
         return colors;
     }
 
+    // ======================== 技能查询 ========================
+
+    /**
+     * 获取实体已注册的技能列表
+     *
+     * @param entityName 实体注册名称
+     * @return 技能列表（不可变），未注册技能返回空列表
+     */
+    public static List<EntitySkill> getEntitySkills(String entityName) {
+        List<EntitySkill> skills = ENTITY_SKILLS.get(entityName);
+        if (skills != null) {
+            PasterDreamMod.LOGGER.debug("[EntityAPI] 🎯 查询实体技能: {} → {} 个技能", entityName, skills.size());
+            return Collections.unmodifiableList(skills);
+        }
+        PasterDreamMod.LOGGER.debug("[EntityAPI] 🎯 查询实体技能: {} → 未配置技能", entityName);
+        return Collections.emptyList();
+    }
+
+    /**
+     * 获取实体指定名称的技能
+     *
+     * @param entityName 实体注册名称
+     * @param skillName  技能名称
+     * @return {@link EntitySkill}，未找到返回 null
+     */
+    public static EntitySkill getEntitySkill(String entityName, String skillName) {
+        List<EntitySkill> skills = ENTITY_SKILLS.get(entityName);
+        if (skills != null) {
+            for (EntitySkill skill : skills) {
+                if (skill.name().equals(skillName)) {
+                    PasterDreamMod.LOGGER.debug("[EntityAPI] 🎯 查询实体技能: {}[{}] → 已找到", entityName, skillName);
+                    return skill;
+                }
+            }
+        }
+        PasterDreamMod.LOGGER.debug("[EntityAPI] 🎯 查询实体技能: {}[{}] → 未找到", entityName, skillName);
+        return null;
+    }
+
+    /**
+     * 检查实体是否注册了指定技能
+     *
+     * @param entityName 实体注册名称
+     * @param skillName  技能名称
+     * @return 如果实体拥有该技能返回 true
+     */
+    public static boolean hasEntitySkill(String entityName, String skillName) {
+        return getEntitySkill(entityName, skillName) != null;
+    }
+
     // ======================== 内部缓存方法 (Builder 调用) ========================
 
     /**
@@ -301,5 +308,22 @@ public final class EntityAPI {
         int total = SPAWN_EGG_COLORS.size();
         PasterDreamMod.LOGGER.info("[EntityAPI] 📦 已缓存生成蛋颜色: {} | bg=#{}, hl=#{} | 颜色缓存总数: {}",
                 name, Integer.toHexString(backgroundColor), Integer.toHexString(highlightColor), total);
+    }
+
+    /**
+     * 缓存实体的技能列表（内部使用）
+     *
+     * @param entityName 实体注册名称
+     * @param skills     实体技能列表
+     */
+    public static void cacheSkills(String entityName, java.util.List<EntitySkill> skills) {
+        ENTITY_SKILLS.put(entityName, java.util.List.copyOf(skills));
+        int total = ENTITY_SKILLS.size();
+        PasterDreamMod.LOGGER.info("[EntityAPI] 📦 已缓存实体技能: {} | 技能数: {} | 技能缓存实体总数: {}",
+                entityName, skills.size(), total);
+        for (EntitySkill skill : skills) {
+            PasterDreamMod.LOGGER.debug("[EntityAPI]   ├─ 技能: {} | anim={}, damage={}, range={}, cooldown={}",
+                    skill.name(), skill.animationName(), skill.damage(), skill.range(), skill.cooldownTicks());
+        }
     }
 }

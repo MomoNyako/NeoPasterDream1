@@ -5,7 +5,7 @@ import json
 import os
 
 MOD_ID = "pasterdream"
-LOOT_DIR = os.path.join("src", "main", "resources", "data", MOD_ID, "loot_tables", "blocks")
+LOOT_DIR = os.path.join("src", "main", "resources", "data", MOD_ID, "loot_table", "blocks")
 
 # ==================== 方块战利品定义 ====================
 
@@ -36,6 +36,14 @@ self_drop_blocks = [
     "dyedream_planks_pane",
     # 粉丁菇 4 变种
     "pinkagaric_0", "pinkagaric_1", "pinkagaric_2", "pinkagaric_3",
+    # 钙华变体系列
+    "polished_calcite", "calcite_tiles",
+    "calcite_tiles_stairs", "calcite_tiles_slab", "calcite_tiles_wall",
+    "polished_calcite_stairs", "polished_calcite_slab", "polished_calcite_wall",
+    # 梦境列车结构方块
+    "dream_train_structure",
+    # 融梦水晶箱（已通过 Java getDrops 覆盖，但留 loot table 确保无误）
+    "dream_cauldron",
     # 花蕾 3 变种
     "dyedream_bud_0", "dyedream_bud_1", "dyedream_bud_2",
     # 冰蕾

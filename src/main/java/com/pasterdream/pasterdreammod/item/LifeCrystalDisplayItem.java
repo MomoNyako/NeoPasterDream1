@@ -1,8 +1,6 @@
 package com.pasterdream.pasterdreammod.item;
 
-import com.pasterdream.pasterdreammod.client.renderer.item.LifeCrystalDisplayItemRenderer;
 import com.pasterdream.pasterdreammod.registry.PDBlocks;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.Item;
 import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.animation.PlayState;
@@ -10,6 +8,9 @@ import software.bernie.geckolib.animation.PlayState;
 /**
  * 生命水晶显示物品
  * 使用 GeoItem 实现 3D 物品渲染
+ * <p>
+ * 客户端渲染器通过 {@code PDClientItemExtensions} 中的
+ * {@code RegisterClientExtensionsEvent} 单独注册，避免服务端类加载。
  */
 public class LifeCrystalDisplayItem extends AbstractGeoDisplayItem {
 
@@ -20,16 +21,6 @@ public class LifeCrystalDisplayItem extends AbstractGeoDisplayItem {
      */
     public LifeCrystalDisplayItem(Item.Properties properties) {
         super(PDBlocks.LIFE_CRYSTAL.get(), properties);
-    }
-
-    /**
-     * 创建自定义渲染器
-     *
-     * @return LifeCrystalDisplayItemRenderer 实例
-     */
-    @Override
-    protected BlockEntityWithoutLevelRenderer createRenderer() {
-        return new LifeCrystalDisplayItemRenderer();
     }
 
     /**

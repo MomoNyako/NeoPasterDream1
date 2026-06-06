@@ -38,6 +38,8 @@ public class PDRuinsRegistration {
         registerDreamTrain();
         registerDyedreamWorldTree();
         registerPinkagaricHouses();
+        registerDyedreamCrack();
+        registerDesertCottage();
 
         int count = REGISTERED_STRUCTURES.size();
         PasterDreamMod.LOGGER.info("[PDRuinsRegistration] ✅ 染梦遗迹结构注册完成: 共 {} 个", count);
@@ -106,6 +108,49 @@ public class PDRuinsRegistration {
             buildRuin(name, -4);
             buildSet(name, name + "_set", spacing[i], separ[i], salts[i]);
         }
+    }
+
+    /**
+     * 注册主世界 vs 染梦裂隙结构 —— struct_dyedream_crack_1
+     * <p>
+     * 在主世界 Y=32 处生成裂隙结构，包含 {@code dyedream_crack} 方块，
+     * 玩家接触后可传送到染梦维度。
+     */
+    private static void registerDyedreamCrack() {
+        RuinResult result = RuinAPI.createRuin("struct_dyedream_crack_1")
+                .biomeTag("minecraft:is_overworld")
+                .templatePool("pasterdream:struct_dyedream_crack_1")
+                .structureClass(JigsawStructure.class)
+                .codec(JigsawStructure.CODEC)
+                .terrainAdaptation("none")
+                .step("surface_structures")
+                .size(1)
+                .startHeight(32)
+                .generateJson(false)
+                .build();
+        REGISTERED_STRUCTURES.put("struct_dyedream_crack_1", result);
+        buildSet("struct_dyedream_crack_1", "struct_dyedream_crack_1_set", 37, 20, 2076406732);
+    }
+
+    /**
+     * 注册沙漠小屋结构 —— desert_cottage_0
+     * <p>
+     * 在沙漠地表 Y=0 生成的小型沙漠建筑，全原版方块。
+     */
+    private static void registerDesertCottage() {
+        RuinResult result = RuinAPI.createRuin("desert_cottage_0")
+                .biomeTag("minecraft:is_overworld")
+                .templatePool("pasterdream:desert_cottage_0")
+                .structureClass(JigsawStructure.class)
+                .codec(JigsawStructure.CODEC)
+                .terrainAdaptation("beard_thin")
+                .step("surface_structures")
+                .size(1)
+                .startHeight(0)
+                .generateJson(false)
+                .build();
+        REGISTERED_STRUCTURES.put("desert_cottage_0", result);
+        buildSet("desert_cottage_0", "desert_cottage_0_set", 60, 48, 1131718516);
     }
 
     /** 获取已注册的结构结果 */

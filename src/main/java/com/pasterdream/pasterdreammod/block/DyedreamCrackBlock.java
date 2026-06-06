@@ -158,7 +158,7 @@ public class DyedreamCrackBlock extends Block implements SimpleWaterloggedBlock 
         }
 
         // 查找安全传送位置
-        BlockPos targetPos = findSafePosition(targetWorld);
+        BlockPos targetPos = findSafePosition(targetWorld, player);
 
         DimensionTransition transition = new DimensionTransition(
             targetWorld,
@@ -178,13 +178,23 @@ public class DyedreamCrackBlock extends Block implements SimpleWaterloggedBlock 
     /**
      * 在目标维度查找安全的传送位置
      * <p>
-     * 优先使用世界出生点，并从高处向下扫描找到安全地面
+     * 优先使用玩家重生点（床），若玩家未设置重生点或重生点不在目标维度，
+     * 则回退到世界出生点，并从高处向下扫描找到安全地面。
      *
-     * @param world 目标世界
+     * @param world  目标世界
+     * @param player 传送的玩家
      * @return 安全的传送位置
      */
-    private BlockPos findSafePosition(ServerLevel world) {
-        BlockPos spawnPos = world.getSharedSpawnPos();
+    private BlockPos findSafePosition(ServerLevel world, ServerPlayer player) {
+        BlockPos spawnPos;
+
+        // 优先使用玩家重生点
+        if (player.getRespawnPosition() != null && player.getRespawnDimension().equals(world.dimension())) {
+            spawnPos = player.getRespawnPosition();
+        } else {
+            spawnPos = world.getSharedSpawnPos();
+        }
+
         BlockPos.MutableBlockPos checkPos = spawnPos.atY(world.getMaxBuildHeight() - 1).mutable();
 
         // 从最高处向下扫描，找到第一个非空气方块（即地面），然后在其上空 2 格处传送

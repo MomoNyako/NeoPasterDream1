@@ -33,8 +33,8 @@
     "water_fog_color": 329011,
     "music": {
       "sound": "pasterdream:music.dream_heath",
-      "min_delay": 600,
-      "max_delay": 1200,
+      "min_delay": 1200,
+      "max_delay": 1800,
       "replace_current_music": true
     }
   },

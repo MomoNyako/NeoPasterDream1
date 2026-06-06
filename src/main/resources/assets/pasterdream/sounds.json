@@ -204,7 +204,7 @@
       {
         "name": "pasterdream:music/dream_taiga",
         "stream": true,
-        "volume": 0.3
+        "volume": 0.12
       }
     ]
   },
@@ -216,6 +216,26 @@
         "name": "pasterdream:music/dream_delta",
         "stream": true,
         "volume": 0.3
+      }
+    ]
+  },
+  "meltdream_chest": {
+    "category": "block",
+    "subtitle": "subtitle.pasterdream.meltdream_chest",
+    "sounds": [
+      {
+        "name": "pasterdream:meltdream_chest",
+        "stream": false
+      }
+    ]
+  },
+  "meltdream_chest_0": {
+    "category": "block",
+    "subtitle": "subtitle.pasterdream.meltdream_chest_0",
+    "sounds": [
+      {
+        "name": "pasterdream:meltdream_chest_0",
+        "stream": false
       }
     ]
   }

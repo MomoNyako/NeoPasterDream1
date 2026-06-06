@@ -43,6 +43,22 @@ public class PDSounds {
     /** 缓存已注册的维度音乐事件 */
     private static final Map<String, Supplier<SoundEvent>> DIMENSION_MUSIC_CACHE = new HashMap<>();
 
+    // ==================== 融梦水晶箱 SoundEvent ====================
+
+    /**
+     * 融梦水晶箱 —— 普通/稀有品质音效
+     */
+    public static final Supplier<SoundEvent> MELTDREAM_CHEST_0 = SOUND_EVENTS.register("meltdream_chest_0",
+            () -> SoundEvent.createVariableRangeEvent(
+                    ResourceLocation.fromNamespaceAndPath(PasterDreamMod.MOD_ID, "meltdream_chest_0")));
+
+    /**
+     * 融梦水晶箱 —— 传说品质音效
+     */
+    public static final Supplier<SoundEvent> MELTDREAM_CHEST = SOUND_EVENTS.register("meltdream_chest",
+            () -> SoundEvent.createVariableRangeEvent(
+                    ResourceLocation.fromNamespaceAndPath(PasterDreamMod.MOD_ID, "meltdream_chest")));
+
     // ==================== 唱片音乐 SoundEvent ====================
 
     /**
