@@ -12,6 +12,8 @@ import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
+import java.util.Objects;
+
 /**
  * 装饰物流式 Builder —— 用于链式配置装饰物参数并注册
  * <p>
@@ -537,16 +539,28 @@ public class DecorationBuilder {
      * 注册装饰物 —— 将当前配置构建为 {@link DecorationConfig} 并提交到 {@link DecorationRegistry}
      * <p>
      * 调用前必须至少通过 {@link #body(Block)} 或 {@link #body(BlockStateProvider)} 设置主体方块，
-     * 否则会抛出 {@link IllegalStateException}。
+     * 并通过 {@link #biome(String)} 设置目标群系，否则会抛出异常。
      *
      * @param name 装饰物注册名称（对应 JSON 文件名和资源路径）
      * @return 已放置特征的 ResourceKey，用于在 BiomeModifier 中引用
-     * @throws IllegalStateException 如果主体方块未设置
+     * @throws NullPointerException     如果主体方块未设置
+     * @throws IllegalStateException    如果目标群系未设置或高度范围无效
      */
     public ResourceKey<PlacedFeature> register(String name) {
-        if (bodyBlock == null) {
+        Objects.requireNonNull(bodyBlock,
+                "[DecorationBuilder] 装饰物 '" + name + "' 的主体方块(bodyBlock)不能为空！请调用 .body(Block) 或 .body(BlockStateProvider)。");
+
+        // 校验目标群系（为空则装饰物不会被绑定到任何群系，属于常见漏配）
+        if (targetBiome == null || targetBiome.isEmpty()) {
             throw new IllegalStateException(
-                    "装饰物 '" + name + "' 的主体方块(bodyBlock)未设置！请先调用 .body(Block) 或 .body(BlockStateProvider)。"
+                    "[DecorationBuilder] 装饰物 '" + name + "' 的目标群系(targetBiome)未设置！请调用 .biome(String)。"
+            );
+        }
+
+        // 校验高度范围
+        if (minHeight > maxHeight) {
+            throw new IllegalStateException(
+                    "[DecorationBuilder] 装饰物 '" + name + "' 的高度范围无效：minHeight(" + minHeight + ") > maxHeight(" + maxHeight + ")"
             );
         }
 

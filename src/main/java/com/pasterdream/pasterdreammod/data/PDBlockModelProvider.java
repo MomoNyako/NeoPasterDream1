@@ -14,6 +14,9 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
  * PasterDream 方块模型/状态数据生成器
  * 自动读取 {@link BlockAPI#getBlockConfigs()} 中的 model/textures 配置，
  * 生成 blockstate JSON 和 model JSON 到 src/generated/resources
+ * <p>
+ * 如果方块配置了 {@link BlockConfig#getRenderType()}，会在模型 JSON 中输出
+ * {@code "render_type": "xxx"} 字段，用于透明/半透明方块的渲染。
  */
 public class PDBlockModelProvider extends BlockStateProvider {
 
@@ -35,13 +38,25 @@ public class PDBlockModelProvider extends BlockStateProvider {
             switch (model) {
                 case "cube_all" -> {
                     ResourceLocation tex = resolveLoc(config, "all", "block/" + name);
-                    simpleBlock(block, models().cubeAll(name, tex));
+                    var modelBuilder = models().cubeAll(name, tex);
+                    if (config.getRenderType() != null) {
+                        modelBuilder.renderType(config.getRenderType());
+                    }
+                    simpleBlock(block, modelBuilder);
                 }
                 case "cube_column" -> {
                     ResourceLocation end = resolveLoc(config, "end", "block/" + name + "_top");
                     ResourceLocation side = resolveLoc(config, "side", "block/" + name + "_side");
                     if (block instanceof RotatedPillarBlock pillarBlock) {
+                        // 柱子类方块：生成 axis=x/y/z 三个变体
                         axisBlock(pillarBlock, side, end);
+                    } else {
+                        // 非柱子方块：生成简单 cube_column 模型
+                        var modelBuilder = models().cubeColumn(name, side, end);
+                        if (config.getRenderType() != null) {
+                            modelBuilder.renderType(config.getRenderType());
+                        }
+                        simpleBlock(block, modelBuilder);
                     }
                 }
                 case "cube_top_bottom" -> {

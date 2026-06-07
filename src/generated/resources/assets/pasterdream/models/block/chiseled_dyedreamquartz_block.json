@@ -1,6 +1,7 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_column",
   "textures": {
-    "all": "pasterdream:block/dyedreamquartz_chiseled"
+    "end": "pasterdream:block/dyedreamquartz_chiseled_top",
+    "side": "pasterdream:block/dyedreamquartz_chiseled_side"
   }
 }

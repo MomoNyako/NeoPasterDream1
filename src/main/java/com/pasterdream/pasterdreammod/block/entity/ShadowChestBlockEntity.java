@@ -192,7 +192,7 @@ public class ShadowChestBlockEntity extends BlockEntity implements GeoBlockEntit
 
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new com.pasterdream.pasterdreammod.world.inventory.ShadowChestMenu(id, inventory, this);
+        return new com.pasterdream.pasterdreammod.menu.ShadowChestMenu(id, inventory, this);
     }
 
     @Override

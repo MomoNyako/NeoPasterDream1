@@ -1,6 +1,7 @@
 package com.pasterdream.pasterdreammod.block;
 
 import com.mojang.serialization.MapCodec;
+import com.pasterdream.pasterdreammod.registry.PDBlocks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,8 +29,12 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import java.util.List;
 
 /**
- * 染梦海草方块——水下植物，只允许放置于水中。
+ * 染梦海草方块——水下植物，仅允许放置于水底的固体方块上。
  * 继承 BushBlock 获得植物类摆放行为，同时实现 SimpleWaterloggedBlock 支持 Waterlogged。
+ * 关键约束：
+ * - 必须 WATERLOGGED=true（被水完全浸泡）
+ * - 下方必须是固体方块（沙、土、黏土等），不能悬浮在水中
+ * - 不检查上方是否有水，以兼容浅水区自然生成
  */
 public class DyedreamSeagrassBlock extends BushBlock implements SimpleWaterloggedBlock {
     public static final MapCodec<DyedreamSeagrassBlock> CODEC = simpleCodec(properties -> new DyedreamSeagrassBlock());
@@ -66,23 +71,26 @@ public class DyedreamSeagrassBlock extends BushBlock implements SimpleWaterlogge
 
     @Override
     protected boolean mayPlaceOn(BlockState groundState, BlockGetter level, BlockPos pos) {
+        // 海草必须种植在固体方块上（原版 + 染梦维度方块），不允许悬浮在水中
         return groundState.is(Blocks.SAND)
             || groundState.is(Blocks.GRAVEL)
             || groundState.is(Blocks.DIRT)
             || groundState.is(Blocks.CLAY)
             || groundState.is(net.minecraft.world.level.block.Blocks.MUD)
-            || groundState.is(Blocks.WATER)
-            || groundState.getFluidState().is(Fluids.WATER);
+            || groundState.is(PDBlocks.DYEDREAM_SAND.get())
+            || groundState.is(PDBlocks.DYEDREAM_DIRT.get())
+            || groundState.is(PDBlocks.DYEDREAM_BLOCK.get());
     }
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        boolean isWaterlogged = state.getValue(WATERLOGGED);
-        if (!isWaterlogged) {
+        // 必须被水浸泡
+        if (!state.getValue(WATERLOGGED)) {
             return false;
         }
         BlockPos below = pos.below();
         BlockState groundState = level.getBlockState(below);
+        // 下方必须是固体方块（不能是水），防止悬浮
         return this.mayPlaceOn(groundState, level, below);
     }
 

@@ -1,11 +1,5 @@
 package com.pasterdream.pasterdreammod.worldgen.decor;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.mojang.serialization.JsonOps;
 import com.pasterdream.pasterdreammod.PasterDreamMod;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -17,10 +11,6 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,17 +18,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 装饰物注册管理中心 —— 统一管理所有装饰物特征的注册与 JSON 生成
+ * 装饰物注册管理中心 —— 统一管理所有装饰物特征的注册与条目追踪
  * <p>
  * 负责：
  * <ul>
  *   <li>使用 DeferredRegister 注册 {@link GenericDecorationFeature} 到特征注册表</li>
  *   <li>管理所有已注册的装饰物条目列表</li>
  *   <li>提供 register() 方法供 {@link DecorationBuilder} 调用</li>
- *   <li>自动生成 configured_feature + placed_feature 的 JSON 数据文件</li>
+ *   <li>JSON 数据文件生成委托给 {@link DecorationJsonGenerator}</li>
  * </ul>
- * <p>
- * 生成的 JSON 文件会输出到项目的资源目录中，便于直接打包使用。
+ *
+ * @see DecorationBuilder 装饰物构建器（入口 API）
+ * @see DecorationJsonGenerator JSON 数据文件生成器
  */
 public class DecorationRegistry {
 
@@ -80,11 +71,6 @@ public class DecorationRegistry {
     public static ICustomDecorationGenerator getCustomGenerator(String key) {
         return CUSTOM_GENERATORS.get(key);
     }
-
-    /**
-     * Gson 实例 —— 用于美化输出的 JSON 文件
-     */
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     /*
      * 静态初始化块：将 GenericDecorationFeature 注册到 FEATURES 注册表中
@@ -153,115 +139,6 @@ public class DecorationRegistry {
     }
 
     /**
-     * 自动生成所有已注册装饰物的 JSON 数据文件
-     * <p>
-     * 在 {@code src/main/resources/data/<modid>/worldgen/} 目录下生成：
-     * <ul>
-     *   <li>{@code configured_feature/<name>.json} —— 配置特征定义</li>
-     *   <li>{@code placed_feature/<name>.json} —— 已放置特征定义（含稀有度、高度图等放置参数）</li>
-     * </ul>
-     * <p>
-     * <b>注意：</b>此方法会<b>覆盖</b>已存在的同名 JSON 文件，请在确认无误后调用。
-     */
-    public static void generateAllJson() {
-        Path basePath = Path.of("src", "main", "resources", "data", PasterDreamMod.MOD_ID);
-        Path configuredPath = basePath.resolve("worldgen").resolve("configured_feature");
-        Path placedPath = basePath.resolve("worldgen").resolve("placed_feature");
-
-        for (DecorationEntry entry : REGISTERED) {
-            try {
-                generateConfiguredFeatureJson(entry, configuredPath);
-                generatePlacedFeatureJson(entry, placedPath);
-            } catch (IOException e) {
-                PasterDreamMod.LOGGER.error("[DecorationRegistry] 生成 JSON 失败: name={}, error={}",
-                        entry.name(), e.getMessage(), e);
-            }
-        }
-
-        PasterDreamMod.LOGGER.info("[DecorationRegistry] JSON 文件生成完成! 共生成 {} 个装饰物定义", REGISTERED.size());
-        PasterDreamMod.LOGGER.info("  输出目录: {}", basePath.resolve("worldgen").toAbsolutePath().normalize());
-    }
-
-    /**
-     * 生成单个 configured_feature JSON 文件
-     *
-     * @param entry   装饰物条目
-     * @param dirPath configured_feature 输出目录
-     * @throws IOException 文件写入失败时抛出
-     */
-    private static void generateConfiguredFeatureJson(DecorationEntry entry, Path dirPath) throws IOException {
-        JsonObject root = new JsonObject();
-
-        // feature 类型引用 —— 对应 DeferredRegister 中注册的 GenericDecorationFeature
-        root.addProperty("type", PasterDreamMod.MOD_ID + ":generic_decor");
-
-        // 将 DecorationConfig 通过其 CODEC 序列化为 JSON 对象
-        // 使用 .codec() 将 MapCodec 转为 Codec 后再调用 encodeStart
-        JsonElement configJson = DecorationConfig.CODEC.codec()
-                .encodeStart(JsonOps.INSTANCE, entry.config())
-                .getOrThrow(msg -> {
-                    PasterDreamMod.LOGGER.error("配置编码失败: {}", msg);
-                    return new RuntimeException("装饰物配置 JSON 编码失败: " + msg);
-                });
-        root.add("config", configJson);
-
-        Files.createDirectories(dirPath);
-        Path filePath = dirPath.resolve(entry.name() + ".json");
-        Files.writeString(filePath, GSON.toJson(root), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-
-        PasterDreamMod.LOGGER.debug("  已生成 configured_feature: {}", filePath);
-    }
-
-    /**
-     * 生成单个 placed_feature JSON 文件
-     * <p>
-     * 包含标准的放置参数：稀有度过滤 → 正方形散布 → 高度图定位 → 群系过滤
-     *
-     * @param entry   装饰物条目
-     * @param dirPath placed_feature 输出目录
-     * @throws IOException 文件写入失败时抛出
-     */
-    private static void generatePlacedFeatureJson(DecorationEntry entry, Path dirPath) throws IOException {
-        JsonObject root = new JsonObject();
-
-        // 引用对应的 configured_feature
-        root.addProperty("feature", PasterDreamMod.MOD_ID + ":" + entry.name());
-
-        // 放置参数列表
-        JsonArray placement = new JsonArray();
-
-        // 1. 稀有度过滤器 —— 控制生成概率
-        JsonObject rarityFilter = new JsonObject();
-        rarityFilter.addProperty("type", "minecraft:rarity_filter");
-        rarityFilter.addProperty("chance", entry.rarity());
-        placement.add(rarityFilter);
-
-        // 2. 正方形散布 —— 在区块内随机偏移
-        JsonObject inSquare = new JsonObject();
-        inSquare.addProperty("type", "minecraft:in_square");
-        placement.add(inSquare);
-
-        // 3. 高度图定位 —— 在地表最高阻挡方块处放置
-        JsonObject heightmap = new JsonObject();
-        heightmap.addProperty("type", "minecraft:heightmap");
-        heightmap.addProperty("heightmap", "MOTION_BLOCKING");
-        placement.add(heightmap);
-
-        // 4. 群系过滤器 —— 仅目标群系生成
-        JsonObject biomeFilter = new JsonObject();
-        biomeFilter.addProperty("type", "minecraft:biome");
-        placement.add(biomeFilter);
-
-        root.add("placement", placement);
-
-        Files.createDirectories(dirPath);
-        Path filePath = dirPath.resolve(entry.name() + ".json");
-        Files.writeString(filePath, GSON.toJson(root), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-
-        PasterDreamMod.LOGGER.debug("  已生成 placed_feature: {}", filePath);
-    }
-
-    /**
      * 获取所有已注册的装饰物条目列表
      *
      * @return 只读的装饰物条目列表
@@ -271,63 +148,23 @@ public class DecorationRegistry {
     }
 
     /**
+     * 自动生成所有已注册装饰物的 JSON 数据文件
+     * <p>
+     * 委托给 {@link DecorationJsonGenerator#generateAllJson()} 执行。
+     * 保持此方法为过渡兼容，新代码应直接调用 {@code DecorationJsonGenerator.generateAllJson()}。
+     */
+    public static void generateAllJson() {
+        DecorationJsonGenerator.generateAllJson();
+    }
+
+    /**
      * 自动生成所有已注册装饰物的 biome_modifier JSON 文件
      * <p>
-     * 在 {@code src/main/resources/data/<modid>/neoforge/biome_modifier/} 目录下生成
-     * biome_modifier JSON 文件，按群系和生成阶段分组。
-     * 每组生成一个文件，文件名为 {@code {biome_simple_name}_{step_name}.json}。
-     * <p>
-     * <b>注意：</b>此方法会<b>覆盖</b>已存在的同名 JSON 文件，
-     * 请在确认无误后调用。已有手动编写的 biome_modifier 文件不会被覆盖
-     * （文件名使用自动生成的命名规则，不会与手动命名的文件冲突）。
+     * 委托给 {@link DecorationJsonGenerator#generateBiomeModifierJson()} 执行。
+     * 保持此方法为过渡兼容，新代码应直接调用 {@code DecorationJsonGenerator.generateBiomeModifierJson()}。
      */
     public static void generateBiomeModifierJson() {
-        Path basePath = Path.of("src", "main", "resources", "data", PasterDreamMod.MOD_ID,
-                "neoforge", "biome_modifier");
-        if (REGISTERED.isEmpty()) {
-            PasterDreamMod.LOGGER.info("[DecorationRegistry] 无装饰物条目，跳过 biome_modifier 生成");
-            return;
-        }
-        java.util.Map<String, java.util.List<DecorationEntry>> groups = new java.util.LinkedHashMap<>();
-        for (DecorationEntry entry : REGISTERED) {
-            String key = entry.targetBiome() + "|" + entry.step().name();
-            groups.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(entry);
-        }
-        for (java.util.Map.Entry<String, java.util.List<DecorationEntry>> group : groups.entrySet()) {
-            String key = group.getKey();
-            String biome = key.substring(0, key.indexOf('|'));
-            String stepName = key.substring(key.indexOf('|') + 1).toLowerCase();
-            List<DecorationEntry> entries = group.getValue();
-            String simpleBiomeName = biome;
-            if (biome.startsWith("#")) {
-                simpleBiomeName = "tag_" + biome.substring(biome.indexOf(':') + 1);
-                biome = biome; // keep as-is for JSON
-            } else if (biome.contains(":")) {
-                simpleBiomeName = biome.substring(biome.indexOf(':') + 1);
-            }
-            String fileName = simpleBiomeName + "_" + stepName + ".json";
-            JsonObject root = new JsonObject();
-            root.addProperty("type", "neoforge:add_features");
-            root.addProperty("biomes", biome);
-            JsonArray features = new JsonArray();
-            for (DecorationEntry entry : entries) {
-                features.add(PasterDreamMod.MOD_ID + ":" + entry.name());
-            }
-            root.add("features", features);
-            root.addProperty("step", stepName);
-            try {
-                Files.createDirectories(basePath);
-                Path filePath = basePath.resolve(fileName);
-                Files.writeString(filePath, GSON.toJson(root),
-                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-                PasterDreamMod.LOGGER.debug("  已生成 biome_modifier: {}", filePath);
-            } catch (IOException e) {
-                PasterDreamMod.LOGGER.error("[DecorationRegistry] 生成 biome_modifier 失败: file={}, error={}",
-                        fileName, e.getMessage(), e);
-            }
-        }
-        PasterDreamMod.LOGGER.info("[DecorationRegistry] biome_modifier JSON 文件生成完成! 共生成 {} 个文件", groups.size());
-        PasterDreamMod.LOGGER.info("  输出目录: {}", basePath.toAbsolutePath().normalize());
+        DecorationJsonGenerator.generateBiomeModifierJson();
     }
 
     /**

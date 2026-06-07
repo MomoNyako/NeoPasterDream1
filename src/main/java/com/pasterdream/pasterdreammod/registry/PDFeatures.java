@@ -1,9 +1,9 @@
 package com.pasterdream.pasterdreammod.registry;
 
 import com.pasterdream.pasterdreammod.PasterDreamMod;
-import com.pasterdream.pasterdreammod.worldgen.MegaCalcitePillarFeature;
-import com.pasterdream.pasterdreammod.worldgen.MegaMushroomFeature;
-import com.pasterdream.pasterdreammod.worldgen.PinkagaricClusterFeature;
+import com.pasterdream.pasterdreammod.worldgen.feature.MegaCalcitePillarFeature;
+import com.pasterdream.pasterdreammod.worldgen.feature.MegaMushroomFeature;
+import com.pasterdream.pasterdreammod.worldgen.feature.PinkagaricClusterFeature;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.neoforged.neoforge.registries.DeferredHolder;

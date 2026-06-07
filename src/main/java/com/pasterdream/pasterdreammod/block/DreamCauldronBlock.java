@@ -130,6 +130,8 @@ public class DreamCauldronBlock extends BaseEntityBlock implements SimpleWaterlo
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
+        // 旁观模式不能交互，防止客户端接收 null extraData 崩溃
+        if (player.isSpectator()) return InteractionResult.FAIL;
 
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof DreamCauldronBlockEntity cauldron) {

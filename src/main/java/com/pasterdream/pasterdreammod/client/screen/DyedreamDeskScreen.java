@@ -1,7 +1,7 @@
 package com.pasterdream.pasterdreammod.client.screen;
 
 import com.pasterdream.pasterdreammod.PasterDreamMod;
-import com.pasterdream.pasterdreammod.world.inventory.DyedreamDeskMenu;
+import com.pasterdream.pasterdreammod.menu.DyedreamDeskMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;

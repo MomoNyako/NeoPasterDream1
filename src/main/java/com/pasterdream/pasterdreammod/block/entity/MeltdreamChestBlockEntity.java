@@ -222,7 +222,14 @@ public class MeltdreamChestBlockEntity extends BlockEntity implements GeoBlockEn
         popProgress++;
 
         ItemStack stack = itemHandler.getStackInSlot(slot);
-        if (stack.isEmpty()) return true; // 空槽位跳过
+        if (stack.isEmpty()) {
+            // 空槽位跳过，但如果这是最后一格（下标 8），需要标记弹出完成
+            if (popProgress >= 9) {
+                popComplete = true;
+                setChanged();
+            }
+            return true;
+        }
 
         if (slot == 8 && stack.is(PDItems.MELTDREAM_CRYSTAL_0.get())) {
             // 第 9 格（下标 8）是融梦水晶 → 生成水晶实体
@@ -302,7 +309,7 @@ public class MeltdreamChestBlockEntity extends BlockEntity implements GeoBlockEn
      * <ol>
      *   <li>递增 openingTick</li>
      *   <li>每 5 tick 发射一次融梦水晶粒子</li>
-     *   <li>动画播放完毕后，每 6 tick 弹出一个物品</li>
+     *   <li>动画播放到 60% 时开始每 6 tick 弹出一个物品（边播边喷）</li>
      *   <li>全部弹出后重置 animation=0 回到闲置态</li>
      * </ol>
      *
@@ -331,9 +338,11 @@ public class MeltdreamChestBlockEntity extends BlockEntity implements GeoBlockEn
         }
 
         // ======== 弹出阶段 ========
+        // 在动画播放到 60% 时就开始弹出物品，而非等动画播完
         int animDuration = MeltdreamChestBlock.ANIMATION_DURATIONS[anim];
-        if (be.openingTick > animDuration) {
-            int popTick = be.openingTick - animDuration;
+        int popStartTick = animDuration * 3 / 5; // 60% 处开始喷物品
+        if (be.openingTick >= popStartTick) {
+            int popTick = be.openingTick - popStartTick;
 
             // 每 6 tick 弹出一个
             if (popTick % 6 == 0 && !be.popComplete) {
@@ -343,8 +352,6 @@ public class MeltdreamChestBlockEntity extends BlockEntity implements GeoBlockEn
             // 全部弹出完毕 → 重置为闲置态
             if (be.popComplete) {
                 level.setBlock(pos, state.setValue(MeltdreamChestBlock.ANIMATION, 0), 3);
-                // 注意：setBlock 会触发 setBlockState → 创建新 BlockEntity
-                // 所以 resetOpeningState 由 onLoad 中的 updateCachedAnimation 接管
             }
         }
     }

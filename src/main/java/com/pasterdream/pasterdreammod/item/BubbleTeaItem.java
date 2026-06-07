@@ -6,6 +6,7 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.UseAnim;
 
 /**
  * bubble_tea 物品类
@@ -27,5 +28,10 @@ public class BubbleTeaItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         tooltipComponents.add(Component.literal("\u00A77\u8349\u8393\u9F99\u4EB2\u624B\u6599\u7406\u7684\u996E\u54C1"));
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    }
+
+    @Override
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.DRINK;
     }
 }

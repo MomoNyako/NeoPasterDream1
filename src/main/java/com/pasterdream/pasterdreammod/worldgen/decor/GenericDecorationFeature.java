@@ -14,41 +14,47 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import java.util.*;
 
 /**
- * 统一装饰物特征 —— 根据 {@link DecorationType} 枚举值调度不同的生成算法
+ * 统一装饰物特征 —— 根据 {@link DecorationType} 通过策略模式分派到不同生成器
  * <p>
- * 将 Pillar、Blob、Spike、Gate、Scatter、Aquatic、Custom 七种生成逻辑
- * 统一收敛到同一个 Feature 实现中，通过 DecorationConfig 参数驱动行为差异。
- * 每种类型对应一个私有方法，由 place() 入口统一调度。
+ * 使用 {@link DecorationPlacer} 策略接口实现类型分发，
+ * 新增装饰物类型时无需修改 {@code place()} 方法，只需注册新的映射。
+ * 比传统的 switch 语句更符合开放-封闭原则。
  */
 public class GenericDecorationFeature extends Feature<DecorationConfig> {
 
+    /**
+     * 装饰物类型 → 放置策略的映射表
+     * <p>
+     * 每种 {@link DecorationType} 对应一个 {@link DecorationPlacer} 实现，
+     * 通过构造函数初始化。新增类型时在此添加新映射即可。
+     */
+    private final Map<DecorationType, DecorationPlacer> placers = new HashMap<>();
+
     public GenericDecorationFeature() {
         super(DecorationConfig.CODEC.codec());
+        // 初始化策略映射 —— 每种装饰物类型绑定到对应的放置方法
+        placers.put(DecorationType.PILLAR, this::placePillar);
+        placers.put(DecorationType.BLOB, this::placeBlob);
+        placers.put(DecorationType.SPIKE, this::placeSpike);
+        placers.put(DecorationType.GATE, this::placeGate);
+        placers.put(DecorationType.SCATTER, this::placeScatter);
+        placers.put(DecorationType.AQUATIC, this::placeAquatic);
+        placers.put(DecorationType.CUSTOM, this::placeCustom);
     }
 
     /**
-     * 入口方法 —— 根据配置中的装饰物类型调度到不同的生成算法
+     * 入口方法 —— 通过策略模式分发到对应类型的放置器
      *
      * @param context 特征放置上下文
      * @return 是否放置了至少一个方块
      */
     @Override
     public boolean place(FeaturePlaceContext<DecorationConfig> context) {
-        DecorationConfig config = context.config();
-        BlockPos origin = context.origin();
-        boolean result = switch (config.type()) {
-            case PILLAR -> placePillar(context);
-            case BLOB -> placeBlob(context);
-            case SPIKE -> placeSpike(context);
-            case GATE -> placeGate(context);
-            case SCATTER -> placeScatter(context);
-            case AQUATIC -> placeAquatic(context);
-            case CUSTOM -> placeCustom(context);
-        };
-        if (result) {
-        } else {
+        DecorationPlacer placer = placers.get(context.config().type());
+        if (placer == null) {
+            return false;
         }
-        return result;
+        return placer.place(context);
     }
 
     // ======================== PILLAR (柱形) ========================

@@ -1,11 +1,11 @@
 package com.pasterdream.pasterdreammod.registry;
 
 import com.pasterdream.pasterdreammod.PasterDreamMod;
-import com.pasterdream.pasterdreammod.world.inventory.DreamCauldronMenu;
-import com.pasterdream.pasterdreammod.world.inventory.DyedreamDeskMenu;
-import com.pasterdream.pasterdreammod.world.inventory.MeltdreamChestMenu;
-import com.pasterdream.pasterdreammod.world.inventory.ShadowChestMenu;
-import com.pasterdream.pasterdreammod.world.inventory.TheEndlessBookOfDreamSeekersMenu;
+import com.pasterdream.pasterdreammod.menu.DreamCauldronMenu;
+import com.pasterdream.pasterdreammod.menu.DyedreamDeskMenu;
+import com.pasterdream.pasterdreammod.menu.MeltdreamChestMenu;
+import com.pasterdream.pasterdreammod.menu.ShadowChestMenu;
+import com.pasterdream.pasterdreammod.menu.TheEndlessBookOfDreamSeekersMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;

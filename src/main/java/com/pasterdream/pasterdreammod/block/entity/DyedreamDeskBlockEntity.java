@@ -91,7 +91,7 @@ public class DyedreamDeskBlockEntity extends BlockEntity implements MenuProvider
 
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new com.pasterdream.pasterdreammod.world.inventory.DyedreamDeskMenu(id, inventory, this);
+        return new com.pasterdream.pasterdreammod.menu.DyedreamDeskMenu(id, inventory, this);
     }
 
     @Override

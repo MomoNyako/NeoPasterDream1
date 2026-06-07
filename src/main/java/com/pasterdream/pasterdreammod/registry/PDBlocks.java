@@ -162,7 +162,7 @@ public class PDBlocks {
             .add("dyedream_planks", Blocks.OAK_PLANKS, BlockConfig.of()
                     .mineable("axe").model("cube_all").tex("all", "pasterdream:block/dyedream_planks"))
             .add("dyedream_glass", Blocks.GLASS, BlockConfig.of()
-                    .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/dyedream_glass"))
+                    .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/dyedream_glass").renderType("translucent").blockFactory(TransparentBlock::new))
             .add("dyedream_ice", Blocks.ICE, BlockConfig.of()
                     .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/dyedream_ice"))
             .add("dyedream_packed_ice", Blocks.PACKED_ICE, BlockConfig.of()
@@ -181,9 +181,11 @@ public class PDBlocks {
             .addCustom("bricks_dyedreamquartz_block",
                     BlockBehaviour.Properties.ofFullCopy(Blocks.STONE).requiresCorrectToolForDrops(),
                     BlockConfig.of().mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/dyedreamquartz_brick"))
-            .addCustom("chiseled_dyedreamquartz_block",
-                    BlockBehaviour.Properties.ofFullCopy(Blocks.STONE).lightLevel(s -> 10).requiresCorrectToolForDrops(),
-                    BlockConfig.of().mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/dyedreamquartz_chiseled"))
+            .addCustom("meltdream_crystal_lamp",
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.STONE).lightLevel(s -> 15).requiresCorrectToolForDrops(),
+                    BlockConfig.of().mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/meltdream_crystal_lamp").renderType("translucent"))
+            .add("chiseled_dyedreamquartz_block", Blocks.STONE, BlockConfig.of()
+                    .mineable("pickaxe").model("cube_column").tex("end", "pasterdream:block/dyedreamquartz_chiseled_top").tex("side", "pasterdream:block/dyedreamquartz_chiseled_side"))
             .addCustom("dyedream_bud_block",
                     BlockBehaviour.Properties.ofFullCopy(Blocks.STONE).requiresCorrectToolForDrops(),
                     BlockConfig.of().mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/dyedream_bud"))
@@ -205,9 +207,9 @@ public class PDBlocks {
             .add("congeal_wind_ore", Blocks.IRON_ORE, BlockConfig.of()
                     .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/congeal_wind_ore"))
             .add("carve_dyedream_glass", Blocks.GLASS, BlockConfig.of()
-                    .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/carve_dyedream_glass"))
+                    .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/carve_dyedream_glass").renderType("translucent").blockFactory(TransparentBlock::new))
             .add("gold_carve_dyedream_glass", Blocks.GLASS, BlockConfig.of()
-                    .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/gold_carve_dyedream_glass"))
+                    .mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/gold_carve_dyedream_glass").renderType("translucent").blockFactory(TransparentBlock::new))
             .addCustom("polished_calcite",
                     BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE),
                     BlockConfig.of().mineable("pickaxe").model("cube_all").tex("all", "pasterdream:block/polished_calcite"))
@@ -228,6 +230,7 @@ public class PDBlocks {
     public static final DeferredBlock<Block> DYEDREAMQUARTZ_BLOCK = SIMPLE_BLOCKS.get("dyedreamquartz_block");
     public static final DeferredBlock<Block> SMOOTH_DYEDREAMQUARTZ_BLOCK = SIMPLE_BLOCKS.get("smooth_dyedreamquartz_block");
     public static final DeferredBlock<Block> BRICKS_DYEDREAMQUARTZ_BLOCK = SIMPLE_BLOCKS.get("bricks_dyedreamquartz_block");
+    public static final DeferredBlock<Block> MELTDREAM_CRYSTAL_LAMP = SIMPLE_BLOCKS.get("meltdream_crystal_lamp");
     public static final DeferredBlock<Block> CHISELED_DYEDREAMQUARTZ_BLOCK = SIMPLE_BLOCKS.get("chiseled_dyedreamquartz_block");
     public static final DeferredBlock<Block> DYEDREAM_BUD_BLOCK = SIMPLE_BLOCKS.get("dyedream_bud_block");
     public static final DeferredBlock<Block> PINKSLIME_BLOCK = SIMPLE_BLOCKS.get("pinkslime_block");
@@ -409,7 +412,7 @@ public class PDBlocks {
             IronBarsBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.GLASS_PANE));
 
     public static final DeferredBlock<LanternBlock> DYEDREAM_LARTERN = BLOCKS.registerBlock("dyedream_lartern",
-            LanternBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.LANTERN).lightLevel(s -> 15));
+            LanternBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.LANTERN).lightLevel(s -> 14));
 
     // ==================== 自定义模型方块 ====================
 

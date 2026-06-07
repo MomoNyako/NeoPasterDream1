@@ -30,10 +30,12 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.util.RandomSource;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -200,8 +202,8 @@ public class MeltdreamChestBlock extends BaseEntityBlock implements SimpleWaterl
             default -> getCommonLoot();
         };
 
-        // 3. 填入物品（第 1 格固定为唱片，优先掉落玩家未拥有的）
-        fillItems(chest.getItemHandler(), pool, level.random, player);
+        // 3. 填入物品（根据品质决定掉落策略）
+        fillItems(chest.getItemHandler(), pool, level.random, player, quality);
 
         // 4. 播放音效
         SoundEvent sound = quality == 3 ? PDSounds.MELTDREAM_CHEST.get() : PDSounds.MELTDREAM_CHEST_0.get();
@@ -219,35 +221,53 @@ public class MeltdreamChestBlock extends BaseEntityBlock implements SimpleWaterl
 
     /**
      * 随机选择宝箱品质等级
+     * <p>概率分布：普通 50% → 稀有 30% → 传说 20%</p>
      *
      * @param random 随机数源
      * @return 品质等级 (1=普通, 2=稀有, 3=传说)
      */
     private static int selectQuality(net.minecraft.util.RandomSource random) {
         float roll = random.nextFloat();
-        if (roll < 0.70f) return 1;
-        if (roll < 0.92f) return 2;
+        if (roll < 0.50f) return 1;
+        if (roll < 0.80f) return 2;
         return 3;
     }
 
     /**
-     * 向存货中填入战利品 —— 第 1 格固定为唱片（优先玩家未拥有），
-     * 第 2~8 格从品质池随机抽取，第 9 格固定为融梦水晶
+     * 向存货中填入战利品 —— 根据品质决定掉落策略
+     * <ul>
+     *   <li>普通品质 (1)：8 个随机食物，第 9 格空（不放水晶）</li>
+     *   <li>稀有品质 (2)：第 1 格唱片 + 第 2~7 格随机稀有材料，第 9 格空（不放水晶）</li>
+     *   <li>传说品质 (3)：前 8 格空，第 9 格固定 1 个融梦水晶碎片</li>
+     * </ul>
      *
      * @param handler 存货处理器（9 格）
      * @param pool    物品池数组
      * @param random  随机数源
      * @param player  打开宝箱的玩家（用于判断唱片拥有情况）
+     * @param quality 品质等级（1=普通, 2=稀有, 3=传说）
      */
-    private static void fillItems(net.neoforged.neoforge.items.ItemStackHandler handler, LootEntry[] pool, net.minecraft.util.RandomSource random, Player player) {
-        // 第 1 格：固定掉落 1 张唱片（优先未拥有的）
-        handler.setStackInSlot(0, rollDisc(player, random));
-        // 第 2~8 格：随机抽取
-        for (int i = 1; i < 8; i++) {
-            handler.setStackInSlot(i, rollFromPool(pool, random));
+    private static void fillItems(ItemStackHandler handler, LootEntry[] pool, RandomSource random, Player player, int quality) {
+        if (quality == 3) {
+            // 传说品质：只掉落 1 个融梦水晶碎片，其他格为空
+            for (int i = 0; i < 8; i++) {
+                handler.setStackInSlot(i, ItemStack.EMPTY);
+            }
+            handler.setStackInSlot(8, new ItemStack(PDItems.MELTDREAM_CRYSTAL_0.get()));
+        } else if (quality == 1) {
+            // 普通品质：8 个随机食物，不放融梦水晶碎片
+            for (int i = 0; i < 8; i++) {
+                handler.setStackInSlot(i, rollFromPool(pool, random));
+            }
+            handler.setStackInSlot(8, ItemStack.EMPTY);
+        } else {
+            // 稀有品质：第 1 格唱片 + 第 2~7 格随机稀有材料，不放融梦水晶碎片
+            handler.setStackInSlot(0, rollDisc(player, random));
+            for (int i = 1; i < 8; i++) {
+                handler.setStackInSlot(i, rollFromPool(pool, random));
+            }
+            handler.setStackInSlot(8, ItemStack.EMPTY);
         }
-        // 第 9 格：融梦水晶
-        handler.setStackInSlot(8, new ItemStack(PDItems.MELTDREAM_CRYSTAL_0.get()));
     }
 
     /**
@@ -294,27 +314,32 @@ public class MeltdreamChestBlock extends BaseEntityBlock implements SimpleWaterl
     private static LootEntry[] legendaryLoot = null;
 
     /**
-     * 获取普通品质物品池 —— 染梦维度基础材料与消耗品（懒加载）
+     * 获取普通品质物品池 —— 仅包含简单食物（懒加载）
+     * <p>普通品质战利品只会掉落各种简单食物，不再掉落材料和融梦水晶碎片。</p>
      * <p>仅在首次调用时初始化，避免在类加载阶段访问未注册的 {@link PDItems}。</p>
      *
-     * @return 普通品质物品池数组
+     * @return 普通品质物品池数组（纯食物）
      */
     private static LootEntry[] getCommonLoot() {
         if (commonLoot == null) {
             commonLoot = new LootEntry[] {
-                    new LootEntry(new ItemStack(PDItems.DYEDREAM_DUST.get(), 4), 40),
-                    new LootEntry(new ItemStack(PDItems.MAGIC_STONE.get(), 2), 35),
-                    new LootEntry(new ItemStack(PDItems.PINK_SLIMEBALL.get(), 3), 30),
-                    new LootEntry(new ItemStack(PDItems.DYEDREAMQUARTZ.get(), 3), 30),
-                    new LootEntry(new ItemStack(PDItems.FABRIC.get(), 2), 25),
-                    new LootEntry(new ItemStack(PDItems.COTTON.get(), 3), 25),
-                    new LootEntry(new ItemStack(PDItems.FLOUR.get(), 3), 20),
-                    new LootEntry(new ItemStack(PDItems.GLASSJAR.get(), 2), 18),
-                    new LootEntry(new ItemStack(PDItems.DREAM_COIN_0.get(), 3), 15),
-                    new LootEntry(new ItemStack(PDItems.MANADUST.get(), 3), 15),
-                    new LootEntry(new ItemStack(PDItems.COARSE_SALT.get(), 3), 15),
-                    new LootEntry(new ItemStack(PDItems.GLASS_CUP.get(), 2), 12),
-                    new LootEntry(new ItemStack(PDItems.YEAST.get(), 2), 12)
+                    new LootEntry(new ItemStack(PDItems.FRIED_EGG.get(), 2), 30),
+                    new LootEntry(new ItemStack(PDItems.CANDY_CANE.get(), 2), 25),
+                    new LootEntry(new ItemStack(PDItems.BUBBLE_GUM.get(), 3), 25),
+                    new LootEntry(new ItemStack(PDItems.CHOCOLATE.get(), 2), 25),
+                    new LootEntry(new ItemStack(PDItems.BERRY_BUNCAKE.get(), 2), 22),
+                    new LootEntry(new ItemStack(PDItems.CREAM_BUNCAKE.get(), 2), 22),
+                    new LootEntry(new ItemStack(PDItems.DYEDREAM_POPSICLE.get(), 2), 22),
+                    new LootEntry(new ItemStack(PDItems.GINGERBREAD_MAN.get(), 2), 20),
+                    new LootEntry(new ItemStack(PDItems.POTATO_BUNCAKE.get(), 2), 20),
+                    new LootEntry(new ItemStack(PDItems.PUMPKIN_BUNCAKE.get(), 2), 20),
+                    new LootEntry(new ItemStack(PDItems.JELLYFISH_JELLO.get(), 2), 18),
+                    new LootEntry(new ItemStack(PDItems.RICECAKE.get(), 1), 16),
+                    new LootEntry(new ItemStack(PDItems.SWISS_ROLL.get(), 1), 16),
+                    new LootEntry(new ItemStack(PDItems.BREAD_SLICE.get(), 3), 15),
+                    new LootEntry(new ItemStack(PDItems.FIG.get(), 2), 14),
+                    new LootEntry(new ItemStack(PDItems.STRAWBERRY_HEART.get(), 1), 12),
+                    new LootEntry(new ItemStack(PDItems.WAFER_BISCUIT.get(), 2), 10)
             };
         }
         return commonLoot;

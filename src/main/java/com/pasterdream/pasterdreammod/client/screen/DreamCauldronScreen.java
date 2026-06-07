@@ -1,7 +1,7 @@
 package com.pasterdream.pasterdreammod.client.screen;
 
 import com.pasterdream.pasterdreammod.PasterDreamMod;
-import com.pasterdream.pasterdreammod.world.inventory.DreamCauldronMenu;
+import com.pasterdream.pasterdreammod.menu.DreamCauldronMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -81,9 +81,9 @@ public class DreamCauldronScreen extends AbstractContainerScreen<DreamCauldronMe
         boolean hoverClear = isHovering(CLEAR_BUTTON_X, CLEAR_BUTTON_Y, BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY);
         guiGraphics.blit(hoverClear ? BUTTON_1_TEXTURE : BUTTON_0_TEXTURE,
                 this.leftPos + CLEAR_BUTTON_X, this.topPos + CLEAR_BUTTON_Y,
-                BUTTON_SIZE, 0,
+                0, 0,
                 BUTTON_SIZE, BUTTON_SIZE,
-                BUTTON_SIZE * 2, BUTTON_SIZE);
+                BUTTON_SIZE, BUTTON_SIZE);
     }
 
     @Override

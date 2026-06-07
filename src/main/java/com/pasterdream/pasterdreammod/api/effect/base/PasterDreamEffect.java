@@ -14,6 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.ObjIntConsumer;
 
 /**
  * PasterDream 自定义药水效果基类
@@ -207,6 +208,10 @@ public class PasterDreamEffect extends MobEffect {
         if (config.particleType != null) {
             spawnEffectParticles(entity, amplifier);
         }
+        // 执行每 tick 回调
+        if (config.onTick != null) {
+            config.onTick.accept(entity, amplifier);
+        }
         return true;
     }
 
@@ -250,6 +255,9 @@ public class PasterDreamEffect extends MobEffect {
         private final ParticleType<?> particleType;
 
         @Nullable
+        private final ObjIntConsumer<LivingEntity> onTick;
+
+        @Nullable
         private final BiConsumer<LivingEntity, Integer> onApply;
 
         @Nullable
@@ -261,12 +269,14 @@ public class PasterDreamEffect extends MobEffect {
         private EffectConfig(
                 @Nullable ResourceLocation shaderTexture,
                 @Nullable ParticleType<?> particleType,
+                @Nullable ObjIntConsumer<LivingEntity> onTick,
                 @Nullable BiConsumer<LivingEntity, Integer> onApply,
                 @Nullable BiConsumer<LivingEntity, Integer> onRemove,
                 @Nullable BiFunction<MobEffectInstance, MobEffectInstance, MobEffectInstance> stackingHandler
         ) {
             this.shaderTexture = shaderTexture;
             this.particleType = particleType;
+            this.onTick = onTick;
             this.onApply = onApply;
             this.onRemove = onRemove;
             this.stackingHandler = stackingHandler;
@@ -290,6 +300,9 @@ public class PasterDreamEffect extends MobEffect {
         public ParticleType<?> getParticleType() { return particleType; }
 
         @Nullable
+        public ObjIntConsumer<LivingEntity> getOnTick() { return onTick; }
+
+        @Nullable
         public BiConsumer<LivingEntity, Integer> getOnApply() { return onApply; }
 
         @Nullable
@@ -304,6 +317,7 @@ public class PasterDreamEffect extends MobEffect {
         public static final class Builder {
             private ResourceLocation shaderTexture;
             private ParticleType<?> particleType;
+            private ObjIntConsumer<LivingEntity> onTick;
             private BiConsumer<LivingEntity, Integer> onApply;
             private BiConsumer<LivingEntity, Integer> onRemove;
             private BiFunction<MobEffectInstance, MobEffectInstance, MobEffectInstance> stackingHandler;
@@ -323,15 +337,25 @@ public class PasterDreamEffect extends MobEffect {
 
             /**
              * 设置效果的自定义粒子类型
-             * <p>
-             * 可与 {@link com.pasterdream.pasterdreammod.api.particle.ParticleAPI} 联动，
-             * 使用已注册的自定义粒子。
              *
              * @param particleType 粒子类型
              * @return 当前构建器
              */
             public Builder particleType(ParticleType<?> particleType) {
                 this.particleType = particleType;
+                return this;
+            }
+
+            /**
+             * 设置每 tick 执行的回调
+             * <p>
+             * 每 tick 调用一次，用于持续性的效果逻辑（如随机给经验、消除负面效果等）。
+             *
+             * @param onTick 每 tick 回调 (entity, amplifier) → void
+             * @return 当前构建器
+             */
+            public Builder onTick(ObjIntConsumer<LivingEntity> onTick) {
+                this.onTick = onTick;
                 return this;
             }
 
@@ -374,7 +398,7 @@ public class PasterDreamEffect extends MobEffect {
              * @return 效果配置实例
              */
             public EffectConfig build() {
-                return new EffectConfig(shaderTexture, particleType, onApply, onRemove, stackingHandler);
+                return new EffectConfig(shaderTexture, particleType, onTick, onApply, onRemove, stackingHandler);
             }
         }
     }

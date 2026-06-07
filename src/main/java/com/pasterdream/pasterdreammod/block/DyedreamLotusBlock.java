@@ -3,40 +3,31 @@ package com.pasterdream.pasterdreammod.block;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BushBlock;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.world.level.storage.loot.LootParams;
-import java.util.List;
 
 /**
- * 染梦莲花方块——只能放置在水面上的水生植物，玩家可踩踏其上。
- * 通过 Waterlogged 支持使莲花能与水面共存，同时保留 BushBlock 的生存检查逻辑。
+ * 染梦莲花方块——仿原生 LilyPadBlock 实现。
+ * 继承 BushBlock，只能放置在水面上，提供 1.5 像素高的碰撞箱。
+ * 与原生 LilyPadBlock 的区别：额外实现了 entityInside 防沉没逻辑，
+ * 防止实体穿过薄碰撞箱掉入水中。
  */
-public class DyedreamLotusBlock extends BushBlock implements SimpleWaterloggedBlock {
+public class DyedreamLotusBlock extends BushBlock {
     public static final MapCodec<DyedreamLotusBlock> CODEC = simpleCodec(properties -> new DyedreamLotusBlock());
-    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     protected static final VoxelShape SHAPE = box(0.0, 0.0, 0.0, 16.0, 1.5, 16.0);
 
@@ -49,7 +40,6 @@ public class DyedreamLotusBlock extends BushBlock implements SimpleWaterloggedBl
                 .dynamicShape()
                 .sound(SoundType.LILY_PAD)
                 .pushReaction(PushReaction.DESTROY));
-        this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, false));
     }
 
     @Override
@@ -58,41 +48,16 @@ public class DyedreamLotusBlock extends BushBlock implements SimpleWaterloggedBl
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(WATERLOGGED);
+    protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
+        // 原版 LilyPadBlock 逻辑：下方有水即可放置
+        return state.is(Blocks.WATER) || state.getFluidState().is(Fluids.WATER);
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        FluidState fluid = context.getLevel().getFluidState(context.getClickedPos());
-        return this.defaultBlockState().setValue(WATERLOGGED, fluid.getType() == Fluids.WATER);
-    }
-
-    @Override
-    protected boolean mayPlaceOn(BlockState groundState, BlockGetter worldIn, BlockPos pos) {
-        return groundState.is(Blocks.WATER) || groundState.getFluidState().is(Fluids.WATER);
-    }
-
-    @Override
-    public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+    protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos below = pos.below();
-        BlockState groundState = level.getBlockState(below);
-        boolean canFloatOnWater = this.mayPlaceOn(groundState, level, below);
-        boolean isWaterlogged = state.getValue(WATERLOGGED);
-        return canFloatOnWater || isWaterlogged;
-    }
-
-    @Override
-    public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor level, BlockPos pos, BlockPos facingPos) {
-        if (state.getValue(WATERLOGGED)) {
-            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
-        }
-        return super.updateShape(state, facing, facingState, level, pos, facingPos);
-    }
-
-    @Override
-    public FluidState getFluidState(BlockState state) {
-        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+        // 绕过 Forge/NeoForge 的 canSustainPlant 补丁，直接使用 mayPlaceOn 检查
+        return this.mayPlaceOn(level.getBlockState(below), level, below);
     }
 
     @Override
@@ -107,10 +72,22 @@ public class DyedreamLotusBlock extends BushBlock implements SimpleWaterloggedBl
 
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-    }
-
-    @Override
-    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        return List.of(new ItemStack(this));
+        // 防沉没逻辑：将实体轻轻托在莲花表面
+        double topY = pos.getY() + 1.5 / 16.0;
+        if (entity.getY() >= topY - 0.1) {
+            Vec3 motion = entity.getDeltaMovement();
+            if (motion.y < -0.08) {
+                entity.setDeltaMovement(motion.x, Math.min(motion.y * 0.5, -0.04), motion.z);
+            }
+            if (entity.getY() < topY) {
+                double lift = topY - entity.getY();
+                entity.move(MoverType.SELF, new Vec3(0, lift, 0));
+                entity.setDeltaMovement(
+                        entity.getDeltaMovement().x,
+                        Math.max(entity.getDeltaMovement().y, 0),
+                        entity.getDeltaMovement().z
+                );
+            }
+        }
     }
 }

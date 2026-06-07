@@ -116,13 +116,16 @@ public class SimpleBlockBuilder {
         }
         Map<String, DeferredBlock<Block>> results = new LinkedHashMap<>();
         for (Map.Entry<String, BlockBehaviour.Properties> entry : entries.entrySet()) {
+            String name = entry.getKey();
+            BlockConfig cfg = configs.get(name);
+            // 使用自定义 BlockFactory（如 GlassBlock::new），否则默认 SelfDropBlock::new
+            BlockConfig.BlockFactory factory = cfg != null ? cfg.getBlockFactory() : null;
             DeferredBlock<Block> deferred = registry.registerBlock(
-                    entry.getKey(), SelfDropBlock::new, entry.getValue());
-            results.put(entry.getKey(), deferred);
-            BlockAPI.putBlock(entry.getKey(), deferred);
-            BlockConfig cfg = configs.get(entry.getKey());
+                    name, factory != null ? factory::create : SelfDropBlock::new, entry.getValue());
+            results.put(name, deferred);
+            BlockAPI.putBlock(name, deferred);
             if (cfg != null) {
-                BlockAPI.putConfig(entry.getKey(), cfg);
+                BlockAPI.putConfig(name, cfg);
             }
         }
         return results;

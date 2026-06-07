@@ -21,6 +21,7 @@ import com.pasterdream.pasterdreammod.api.block.BlockAPI;
 import com.pasterdream.pasterdreammod.api.effect.MobEffectAPI;
 import com.pasterdream.pasterdreammod.api.ruin.RuinAPI;
 import com.pasterdream.pasterdreammod.registry.PDParticles;
+import com.pasterdream.pasterdreammod.registry.PDPotions;
 import com.pasterdream.pasterdreammod.registry.PDSounds;
 import com.pasterdream.pasterdreammod.registry.PDStructures;
 import com.pasterdream.pasterdreammod.worldgen.decor.DecorationRegistry;
@@ -80,6 +81,9 @@ public class PasterDreamMod {
         // 注册状态效果（BUFF/DEBUFF）—— 同时支持旧版 PDEffects 和新版 MobEffectAPI
         PDEffects.MOB_EFFECTS.register(modEventBus);
         MobEffectAPI.REGISTRY.register(modEventBus);
+
+        // 注册药水（可酿造）
+        PDPotions.POTIONS.register(modEventBus);
 
         // 注册自定义声音事件（包括维度背景音乐）
         PDSounds.SOUND_EVENTS.register(modEventBus);

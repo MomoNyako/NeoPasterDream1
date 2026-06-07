@@ -117,7 +117,7 @@ public class DreamCauldronBlockEntity extends BlockEntity implements GeoBlockEnt
 
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new com.pasterdream.pasterdreammod.world.inventory.DreamCauldronMenu(id, inventory, this);
+        return new com.pasterdream.pasterdreammod.menu.DreamCauldronMenu(id, inventory, this);
     }
 
     @Override

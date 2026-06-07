@@ -10,7 +10,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PlaceOnWaterBlockItem;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.food.FoodProperties;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -94,6 +96,7 @@ public class PDItems {
     public static final DeferredItem<BlockItem> DYEDREAMQUARTZ_BLOCK = ITEMS.registerSimpleBlockItem("dyedreamquartz_block", PDBlocks.DYEDREAMQUARTZ_BLOCK);
     public static final DeferredItem<BlockItem> SMOOTH_DYEDREAMQUARTZ_BLOCK = ITEMS.registerSimpleBlockItem("smooth_dyedreamquartz_block", PDBlocks.SMOOTH_DYEDREAMQUARTZ_BLOCK);
     public static final DeferredItem<BlockItem> BRICKS_DYEDREAMQUARTZ_BLOCK = ITEMS.registerSimpleBlockItem("bricks_dyedreamquartz_block", PDBlocks.BRICKS_DYEDREAMQUARTZ_BLOCK);
+    public static final DeferredItem<BlockItem> MELTDREAM_CRYSTAL_LAMP = ITEMS.registerSimpleBlockItem("meltdream_crystal_lamp", PDBlocks.MELTDREAM_CRYSTAL_LAMP);
     public static final DeferredItem<BlockItem> CHISELED_DYEDREAMQUARTZ_BLOCK = ITEMS.registerSimpleBlockItem("chiseled_dyedreamquartz_block", PDBlocks.CHISELED_DYEDREAMQUARTZ_BLOCK);
     public static final DeferredItem<BlockItem> DYEDREAM_BUD_BLOCK = ITEMS.registerSimpleBlockItem("dyedream_bud_block", PDBlocks.DYEDREAM_BUD_BLOCK);
     public static final DeferredItem<BlockItem> PINKSLIME_BLOCK = ITEMS.registerSimpleBlockItem("pinkslime_block", PDBlocks.PINKSLIME_BLOCK);
@@ -406,110 +409,129 @@ public class PDItems {
 
     public static final DeferredItem<Item> BROKEN_HERO_SWORD =
             ItemMigrationAPI.toolItem("broken_hero_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
-                    .repairWith(new ItemStack(Items.COBBLESTONE))
+                    .type(ToolType.SWORD).durability(100)
+                    .attackDamage(6.0f).attackSpeed(-2.4f)
+                    .enchantment(0)
                     .build();
     public static final DeferredItem<Item> COPPER_SWORD =
             ItemMigrationAPI.toolItem("copper_sword")
-                    .type(ToolType.SWORD).durability(59)
-                    .attackDamage(3.0f).attackSpeed(-2.4f)
-                    .repairWith(new ItemStack(Items.COBBLESTONE))
+                    .type(ToolType.SWORD).durability(225)
+                    .attackDamage(4.5f).attackSpeed(-2.4f)
+                    .enchantment(12)
+                    .repairWith(new ItemStack(Items.COPPER_INGOT))
                     .build();
     public static final DeferredItem<Item> CREATIVE_SWORD =
             ItemMigrationAPI.toolItem("creative_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
+                    .type(ToolType.SWORD).durability(100)
+                    .attackDamage(9.0f).attackSpeed(6.0f)
+                    .enchantment(2)
                     .build();
     public static final DeferredItem<Item> DESERT_SWORD =
             ItemMigrationAPI.toolItem("desert_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-3.1f)
+                    .type(ToolType.SWORD).durability(1561)
+                    .attackDamage(10.0f).attackSpeed(-3.1f)
+                    .enchantment(8)
                     .build();
     public static final DeferredItem<Item> DYEDREAM_SWORD_0 =
             ItemMigrationAPI.toolItem("dyedream_sword_0")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
+                    .type(ToolType.SWORD).durability(1314)
+                    .attackDamage(8.0f).attackSpeed(-2.4f)
+                    .enchantment(22)
                     .build();
     public static final DeferredItem<Item> DYEDREAM_SWORD =
             ItemMigrationAPI.toolItem("dyedream_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
+                    .type(ToolType.SWORD).durability(1314)
+                    .attackDamage(7.0f).attackSpeed(-2.4f)
+                    .enchantment(22)
                     .build();
     public static final DeferredItem<Item> GRASS_SWORD =
             ItemMigrationAPI.toolItem("grass_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.5f)
+                    .type(ToolType.SWORD).durability(874)
+                    .attackDamage(6.0f).attackSpeed(-2.5f)
+                    .enchantment(16)
                     .build();
     public static final DeferredItem<Item> ICESHADOW_HAMMER =
             ItemMigrationAPI.toolItem("iceshadow_hammer")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-3.3f)
+                    .type(ToolType.SWORD).durability(835)
+                    .attackDamage(12.0f).attackSpeed(-3.3f)
+                    .enchantment(2)
                     .build();
     public static final DeferredItem<Item> MOLTENGOLD_SWORD =
             ItemMigrationAPI.toolItem("moltengold_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.3f)
+                    .type(ToolType.SWORD).durability(251)
+                    .attackDamage(5.0f).attackSpeed(-2.3f)
+                    .enchantment(23)
                     .build();
     public static final DeferredItem<Item> SHADOW_EROSION_SWORD =
             ItemMigrationAPI.toolItem("shadow_erosion_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-1.0f)
+                    .type(ToolType.SWORD).durability(1725)
+                    .attackDamage(5.5f).attackSpeed(-1.0f)
+                    .enchantment(2)
                     .build();
     public static final DeferredItem<Item> SHADOW_SWORD =
             ItemMigrationAPI.toolItem("shadow_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
+                    .type(ToolType.SWORD).durability(1771)
+                    .attackDamage(11.0f).attackSpeed(-2.4f)
+                    .enchantment(10)
                     .build();
     public static final DeferredItem<Item> TERRA_SWORD =
             ItemMigrationAPI.toolItem("terra_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
+                    .type(ToolType.SWORD).durability(1561)
+                    .attackDamage(8.0f).attackSpeed(-2.4f)
                     .build();
     public static final DeferredItem<Item> THERMAL_DAGGER =
             ItemMigrationAPI.toolItem("thermal_dagger")
-                    .type(ToolType.SWORD).durability(59)
-                    .attackDamage(3.0f).attackSpeed(-2.3f)
+                    .type(ToolType.SWORD).durability(1721)
+                    .attackDamage(5.5f).attackSpeed(-2.3f)
+                    .enchantment(2)
                     .build();
     public static final DeferredItem<Item> TIDE_SWORD =
             ItemMigrationAPI.toolItem("tide_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.8f)
+                    .type(ToolType.SWORD).durability(1561)
+                    .attackDamage(7.5f).attackSpeed(-2.8f)
+                    .enchantment(11)
                     .build();
     public static final DeferredItem<Item> TITANIUM_SWORD =
             ItemMigrationAPI.toolItem("titanium_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
+                    .type(ToolType.SWORD).durability(1721)
+                    .attackDamage(6.5f).attackSpeed(-2.4f)
+                    .enchantment(17)
                     .build();
     public static final DeferredItem<Item> TRUE_DESERT_SWORD =
             ItemMigrationAPI.toolItem("true_desert_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-3.1f)
+                    .type(ToolType.SWORD).durability(1561)
+                    .attackDamage(11.0f).attackSpeed(-3.1f)
+                    .enchantment(8)
                     .build();
     public static final DeferredItem<Item> TRUE_GRASS_SWORD =
             ItemMigrationAPI.toolItem("true_grass_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.5f)
+                    .type(ToolType.SWORD).durability(1311)
+                    .attackDamage(6.5f).attackSpeed(-2.5f)
+                    .enchantment(16)
                     .build();
     public static final DeferredItem<Item> TRUE_MOLTENGOLD_SWORD =
             ItemMigrationAPI.toolItem("true_moltengold_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.2f)
+                    .type(ToolType.SWORD).durability(1255)
+                    .attackDamage(6.0f).attackSpeed(-2.2f)
+                    .enchantment(23)
                     .build();
     public static final DeferredItem<Item> TRUE_TIDE_SWORD =
             ItemMigrationAPI.toolItem("true_tide_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.8f)
+                    .type(ToolType.SWORD).durability(1561)
+                    .attackDamage(8.0f).attackSpeed(-2.8f)
+                    .enchantment(11)
                     .build();
     public static final DeferredItem<Item> TRUEST_MOLTENGOLD_SWORD =
             ItemMigrationAPI.toolItem("truest_moltengold_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.15f)
+                    .type(ToolType.SWORD).durability(1255)
+                    .attackDamage(6.0f).attackSpeed(-2.15f)
+                    .enchantment(23)
                     .build();
     public static final DeferredItem<Item> WHITE_SWORD =
             ItemMigrationAPI.toolItem("white_sword")
-                    .type(ToolType.SWORD).durability(131)
-                    .attackDamage(4.0f).attackSpeed(-2.4f)
+                    .type(ToolType.SWORD).durability(1771)
+                    .attackDamage(8.0f).attackSpeed(-2.4f)
+                    .enchantment(10)
                     .build();
 
     // ==================== 镐类/锤类工具 ====================
@@ -573,8 +595,8 @@ public class PDItems {
 
     // ==================== 食物类物品 ====================
 
-    public static final DeferredItem<Item> APPLE_JUICE = ITEMS.registerSimpleItem("apple_juice",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.2f).alwaysEdible().build()));
+    public static final DeferredItem<Item> APPLE_JUICE = ITEMS.register("apple_juice",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.2f).alwaysEdible().build()), PDItems.GLASS_CUP::get));
     public static final DeferredItem<Item> BACONE_EGG = ITEMS.registerSimpleItem("bacone_egg",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(10).saturationModifier(1.2f).build()));
     public static final DeferredItem<Item> BERRY_BUNCAKE = ITEMS.registerSimpleItem("berry_buncake",
@@ -591,12 +613,12 @@ public class PDItems {
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5f).alwaysEdible().fast().build()));
     public static final DeferredItem<Item> DREAM_COTTON_CANDY = ITEMS.registerSimpleItem("dream_cotton_candy",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.625f).alwaysEdible().build()));
-    public static final DeferredItem<Item> DYEDREAM_FLOWER_TEA = ITEMS.registerSimpleItem("dyedream_flower_tea",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()));
+    public static final DeferredItem<Item> DYEDREAM_FLOWER_TEA = ITEMS.register("dyedream_flower_tea",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()), PDItems.GLASS_CUP::get));
     public static final DeferredItem<Item> DYEDREAM_FRUIT_BUNCAKE = ITEMS.registerSimpleItem("dyedream_fruit_buncake",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5f).alwaysEdible().fast().build()));
-    public static final DeferredItem<Item> DYEDREAM_JUICE = ITEMS.registerSimpleItem("dyedream_juice",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationModifier(0.2f).alwaysEdible().build()));
+    public static final DeferredItem<Item> DYEDREAM_JUICE = ITEMS.register("dyedream_juice",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationModifier(0.2f).alwaysEdible().build()), PDItems.GLASS_CUP::get));
     public static final DeferredItem<Item> DYEDREAM_POPSICLE = ITEMS.registerSimpleItem("dyedream_popsicle",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationModifier(0.4f).build()));
     public static final DeferredItem<Item> FRIED_EGG = ITEMS.registerSimpleItem("fried_egg",
@@ -605,10 +627,10 @@ public class PDItems {
             new Item.Properties().food(new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build()));
     public static final DeferredItem<Item> GLOW_BERRY_BUNCAKE = ITEMS.registerSimpleItem("glow_berry_buncake",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5f).alwaysEdible().fast().build()));
-    public static final DeferredItem<Item> GOLDENROD_TEA = ITEMS.registerSimpleItem("goldenrod_tea",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationModifier(0f).alwaysEdible().build()));
-    public static final DeferredItem<Item> HONEY_JUICE = ITEMS.registerSimpleItem("honey_juice",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationModifier(0.1f).alwaysEdible().build()));
+    public static final DeferredItem<Item> GOLDENROD_TEA = ITEMS.register("goldenrod_tea",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationModifier(0f).alwaysEdible().build()), PDItems.GLASSJAR::get));
+    public static final DeferredItem<Item> HONEY_JUICE = ITEMS.register("honey_juice",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationModifier(0.1f).alwaysEdible().build()), PDItems.GLASS_CUP::get));
     public static final DeferredItem<Item> JELLYFISH_JELLO = ITEMS.registerSimpleItem("jellyfish_jello",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5f).alwaysEdible().build()));
     public static final DeferredItem<Item> JELLYFISH_MUD = ITEMS.registerSimpleItem("jellyfish_mud",
@@ -619,22 +641,27 @@ public class PDItems {
             new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationModifier(0f).build()));
     public static final DeferredItem<Item> MELON_BUNCAKE = ITEMS.registerSimpleItem("melon_buncake",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5f).alwaysEdible().fast().build()));
-    public static final DeferredItem<Item> MELTDREAM_ELIXIR_BOTTLE = ITEMS.registerSimpleItem("meltdream_elixir_bottle",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.25f).alwaysEdible().build()));
-    public static final DeferredItem<Item> MILK_GLASSJAR = ITEMS.registerSimpleItem("milk_glassjar",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()));
+    public static final DeferredItem<Item> MELTDREAM_ELIXIR_BOTTLE = ITEMS.register("meltdream_elixir_bottle",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.25f).alwaysEdible().build()), PDItems.ELIXIR_BOTTLE::get));
+    public static final DeferredItem<Item> MILK_GLASSJAR = ITEMS.register("milk_glassjar",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()), PDItems.GLASSJAR::get));
     public static final DeferredItem<Item> ODD_BACONE_EGG = ITEMS.registerSimpleItem("odd_bacone_egg",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(11).saturationModifier(1.5f).build()));
-    public static final DeferredItem<Item> PINEAPPLE_LOVE_SEA = ITEMS.registerSimpleItem("pineapple_love_sea",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(3).saturationModifier(0.5f).build()));
+    public static final DeferredItem<Item> PINEAPPLE_LOVE_SEA = ITEMS.register("pineapple_love_sea",
+            () -> new Item(new Item.Properties().food(new FoodProperties.Builder().nutrition(3).saturationModifier(0.5f).build())) {
+                @Override
+                public UseAnim getUseAnimation(ItemStack stack) {
+                    return UseAnim.DRINK;
+                }
+            });
     public static final DeferredItem<Item> POTATO_BUNCAKE = ITEMS.registerSimpleItem("potato_buncake",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5f).alwaysEdible().fast().build()));
     public static final DeferredItem<Item> PUMPKIN_BUNCAKE = ITEMS.registerSimpleItem("pumpkin_buncake",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5f).alwaysEdible().fast().build()));
-    public static final DeferredItem<Item> QUEER_SOUP = ITEMS.registerSimpleItem("queer_soup",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()));
-    public static final DeferredItem<Item> RAGE_ELIXIR_0 = ITEMS.registerSimpleItem("rage_elixir_0",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()));
+    public static final DeferredItem<Item> QUEER_SOUP = ITEMS.register("queer_soup",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()), () -> Items.BOWL));
+    public static final DeferredItem<Item> RAGE_ELIXIR_0 = ITEMS.register("rage_elixir_0",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()), PDItems.ELIXIR_BOTTLE::get));
     public static final DeferredItem<Item> RICECAKE = ITEMS.registerSimpleItem("ricecake",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationModifier(0.4f).build()));
     public static final DeferredItem<Item> SANDWICH = ITEMS.registerSimpleItem("sandwich",
@@ -643,12 +670,12 @@ public class PDItems {
             new Item.Properties().food(new FoodProperties.Builder().nutrition(7).saturationModifier(1.0f).build()));
     public static final DeferredItem<Item> SWISS_ROLL = ITEMS.registerSimpleItem("swiss_roll",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationModifier(0.8f).build()));
-    public static final DeferredItem<Item> UNCOOKED_DYEDREAM_FLOWER_TEA = ITEMS.registerSimpleItem("uncooked_dyedream_flower_tea",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()));
-    public static final DeferredItem<Item> WATER_GLASSJAR = ITEMS.registerSimpleItem("water_glassjar",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()));
-    public static final DeferredItem<Item> WATERMELON_JUICE = ITEMS.registerSimpleItem("watermelon_juice",
-            new Item.Properties().food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1f).alwaysEdible().build()));
+    public static final DeferredItem<Item> UNCOOKED_DYEDREAM_FLOWER_TEA = ITEMS.register("uncooked_dyedream_flower_tea",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()), PDItems.GLASS_CUP::get));
+    public static final DeferredItem<Item> WATER_GLASSJAR = ITEMS.register("water_glassjar",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(0).saturationModifier(0f).alwaysEdible().build()), PDItems.GLASSJAR::get));
+    public static final DeferredItem<Item> WATERMELON_JUICE = ITEMS.register("watermelon_juice",
+            () -> new GlassDrinkItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1f).alwaysEdible().build()), PDItems.GLASS_CUP::get));
     public static final DeferredItem<Item> SILVER_FOX_COTTON_CANDY = ITEMS.registerSimpleItem("silver_fox_cotton_candy",
             new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationModifier(0.75f).alwaysEdible().build()));
 
@@ -1084,8 +1111,10 @@ public class PDItems {
     public static final DeferredItem<BlockItem> DYEDREAM_BUD_1 = ITEMS.registerSimpleBlockItem("dyedream_bud_1", PDBlocks.DYEDREAM_BUD_1);
     public static final DeferredItem<BlockItem> DYEDREAM_BUD_2 = ITEMS.registerSimpleBlockItem("dyedream_bud_2", PDBlocks.DYEDREAM_BUD_2);
     public static final DeferredItem<BlockItem> ICE_BUD_0 = ITEMS.registerSimpleBlockItem("ice_bud_0", PDBlocks.ICE_BUD_0);
-    public static final DeferredItem<BlockItem> DYEDREAM_LILY_PAD = ITEMS.registerSimpleBlockItem("dyedream_lily_pad", PDBlocks.DYEDREAM_LILY_PAD);
-    public static final DeferredItem<BlockItem> DYEDREAM_LOTUS = ITEMS.registerSimpleBlockItem("dyedream_lotus", PDBlocks.DYEDREAM_LOTUS);
+    public static final DeferredItem<BlockItem> DYEDREAM_LILY_PAD = ITEMS.registerItem("dyedream_lily_pad",
+            p -> new PlaceOnWaterBlockItem(PDBlocks.DYEDREAM_LILY_PAD.get(), p));
+    public static final DeferredItem<BlockItem> DYEDREAM_LOTUS = ITEMS.registerItem("dyedream_lotus",
+            p -> new PlaceOnWaterBlockItem(PDBlocks.DYEDREAM_LOTUS.get(), p));
     public static final DeferredItem<BlockItem> DYEDREAM_SEAGRASS = ITEMS.registerSimpleBlockItem("dyedream_seagrass", PDBlocks.DYEDREAM_SEAGRASS);
     public static final DeferredItem<BlockItem> DYEDREAM_SAPLING = ITEMS.registerSimpleBlockItem("dyedream_sapling", PDBlocks.DYEDREAM_SAPLING);
     public static final DeferredItem<BlockItem> DYEDREAM_CRACK = ITEMS.registerSimpleBlockItem("dyedream_crack", PDBlocks.DYEDREAM_CRACK);

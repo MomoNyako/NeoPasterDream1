@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -30,6 +32,9 @@ public class BlockConfig {
     String mineable;
 
     @Nullable
+    String renderType;
+
+    @Nullable
     String model;
 
     @Nullable
@@ -41,6 +46,9 @@ public class BlockConfig {
     @Nullable
     String animationFile;
 
+    @Nullable
+    BlockFactory blockFactory;
+
     BlockConfig() {
     }
 
@@ -51,6 +59,10 @@ public class BlockConfig {
     /** @return 挖掘工具类型，如 "axe"/"pickaxe"/"shovel"/"hoe" */
     @Nullable
     public String getMineable() { return mineable; }
+
+    /** @return 渲染类型，如 "translucent"/"cutout"，可为 null（默认 solid） */
+    @Nullable
+    public String getRenderType() { return renderType; }
 
     /** @return 模型标识，如 "cube_all"/"cube_column" */
     @Nullable
@@ -69,6 +81,13 @@ public class BlockConfig {
     public String getAnimationFile() { return animationFile; }
 
     /**
+     * @return 自定义 Block 构造工厂，为 null 时默认使用 {@link
+     *         com.pasterdream.pasterdreammod.block.SelfDropBlock}
+     */
+    @Nullable
+    public BlockFactory getBlockFactory() { return blockFactory; }
+
+    /**
      * 设置挖掘工具类型
      *
      * @param tool 工具类型（"axe"/"pickaxe"/"shovel"/"hoe"）
@@ -76,6 +95,17 @@ public class BlockConfig {
      */
     public BlockConfig mineable(String tool) {
         this.mineable = tool;
+        return this;
+    }
+
+    /**
+     * 设置渲染类型（用于玻璃、冰等需要透明渲染的方块）
+     *
+     * @param type 渲染类型，如 "translucent"/"cutout"/"cutout_mipped"
+     * @return 当前配置实例
+     */
+    public BlockConfig renderType(String type) {
+        this.renderType = type;
         return this;
     }
 
@@ -128,6 +158,19 @@ public class BlockConfig {
     }
 
     /**
+     * 设置自定义 Block 构造工厂（覆盖默认的 {@code SelfDropBlock::new}）
+     * <p>
+     * 适用于需要特殊行为（如 {@link net.minecraft.world.level.block.GlassBlock}）的方块。
+     *
+     * @param factory 接收 {@link BlockBehaviour.Properties} 返回 {@link Block} 的函数
+     * @return 当前配置实例
+     */
+    public BlockConfig blockFactory(BlockFactory factory) {
+        this.blockFactory = factory;
+        return this;
+    }
+
+    /**
      * 右键交互回调接口
      */
     @FunctionalInterface
@@ -141,5 +184,13 @@ public class BlockConfig {
          * @param hand   交互的手
          */
         void interact(Level level, BlockPos pos, Player player, InteractionHand hand);
+    }
+
+    /**
+     * Block 构造工厂 —— {@code (BlockBehaviour.Properties) -> Block}
+     */
+    @FunctionalInterface
+    public interface BlockFactory {
+        Block create(BlockBehaviour.Properties properties);
     }
 }

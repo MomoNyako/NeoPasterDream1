@@ -1,7 +1,7 @@
 package com.pasterdream.pasterdreammod.block.entity;
 
 import com.pasterdream.pasterdreammod.registry.PDBlockEntities;
-import com.pasterdream.pasterdreammod.world.inventory.MeltdreamChestMenu;
+import com.pasterdream.pasterdreammod.menu.MeltdreamChestMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;

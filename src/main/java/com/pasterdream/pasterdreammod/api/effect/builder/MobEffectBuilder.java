@@ -16,6 +16,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.ObjIntConsumer;
 
 /**
  * 药水效果构建器 —— 采用 Builder 模式链式配置和注册药水效果
@@ -48,6 +49,7 @@ public class MobEffectBuilder {
     // 可选参数（EffectConfig）
     private ResourceLocation shaderTexture;
     private ParticleType<?> particleType;
+    private ObjIntConsumer<LivingEntity> onTick;
     private BiConsumer<LivingEntity, Integer> onApply;
     private BiConsumer<LivingEntity, Integer> onRemove;
     private BiFunction<MobEffectInstance, MobEffectInstance, MobEffectInstance> stackingHandler;
@@ -189,6 +191,20 @@ public class MobEffectBuilder {
     // ======================== 回调 ========================
 
     /**
+     * 设置每 tick 执行的回调
+     * <p>
+     * 每 tick 调用一次，用于持续性的效果逻辑（如随机给经验、消除负面效果等）。
+     *
+     * @param onTick 每 tick 回调 (entity, amplifier) → void
+     * @return 当前构建器实例
+     */
+    public MobEffectBuilder onTick(ObjIntConsumer<LivingEntity> onTick) {
+        this.onTick = onTick;
+        PasterDreamMod.LOGGER.debug("[MobEffectBuilder] {} → onTick=已配置", name);
+        return this;
+    }
+
+    /**
      * 设置效果应用回调
      *
      * @param onApply 回调函数 (entity, amplifier) → void
@@ -249,6 +265,7 @@ public class MobEffectBuilder {
         EffectConfig config = EffectConfig.builder()
                 .shaderTexture(shaderTexture)
                 .particleType(particleType)
+                .onTick(onTick)
                 .onApply(onApply)
                 .onRemove(onRemove)
                 .stackingHandler(stackingHandler)
@@ -274,10 +291,11 @@ public class MobEffectBuilder {
             PasterDreamMod.LOGGER.debug("[MobEffectBuilder] 标记为瞬时效果: {}", name);
         }
 
-        PasterDreamMod.LOGGER.info("[MobEffectBuilder] ✅ 效果构建完成: {} | category={}, color=#{}, config=着色器:{} 粒子:{} 应用回调:{} 移除回调:{} 叠加:{}",
+        PasterDreamMod.LOGGER.info("[MobEffectBuilder] ✅ 效果构建完成: {} | category={}, color=#{}, config=着色器:{} 粒子:{} tick回调:{} 应用回调:{} 移除回调:{} 叠加:{}",
                 name, category.name(), Integer.toHexString(color),
                 shaderTexture != null ? "✅" : "❌",
                 particleType != null ? "✅" : "❌",
+                onTick != null ? "✅" : "❌",
                 onApply != null ? "✅" : "❌",
                 onRemove != null ? "✅" : "❌",
                 stackingHandler != null ? "✅" : "❌");

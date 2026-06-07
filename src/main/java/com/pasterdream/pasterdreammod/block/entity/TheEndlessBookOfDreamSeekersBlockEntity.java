@@ -112,7 +112,7 @@ public class TheEndlessBookOfDreamSeekersBlockEntity extends BlockEntity impleme
 
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new com.pasterdream.pasterdreammod.world.inventory.TheEndlessBookOfDreamSeekersMenu(id, inventory, this);
+        return new com.pasterdream.pasterdreammod.menu.TheEndlessBookOfDreamSeekersMenu(id, inventory, this);
     }
 
     @Override

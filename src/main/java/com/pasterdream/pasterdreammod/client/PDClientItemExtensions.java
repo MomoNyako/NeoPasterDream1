@@ -7,6 +7,7 @@ import com.pasterdream.pasterdreammod.client.renderer.item.DreamMeterItemRendere
 import com.pasterdream.pasterdreammod.client.renderer.item.LifeCrystalDisplayItemRenderer;
 import com.pasterdream.pasterdreammod.client.renderer.item.MeltdreamChestDisplayItemRenderer;
 import com.pasterdream.pasterdreammod.client.renderer.item.MeltdreamChestOpenDisplayItemRenderer;
+import com.pasterdream.pasterdreammod.client.renderer.item.MeltdreamLiquidBucketRenderer;
 import com.pasterdream.pasterdreammod.client.renderer.item.ShadowChestDisplayItemRenderer;
 import com.pasterdream.pasterdreammod.client.renderer.item.TheEndlessBookOfDreamSeekersDisplayItemRenderer;
 import com.pasterdream.pasterdreammod.registry.PDItems;
@@ -56,6 +57,9 @@ public class PDClientItemExtensions {
 
         registerDisplayItem(event, PDItems.DREAM_METER.get(), new DreamMeterItemRenderer());
         PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: dream_meter → DreamMeterItemRenderer（GeckoLib 3D）");
+
+        registerDisplayItem(event, PDItems.MELTDREAM_LIQUID_BUCKET.get(), new MeltdreamLiquidBucketRenderer());
+        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册物品: meltdream_liquid_bucket → MeltdreamLiquidBucketRenderer（BEWLR 流体覆盖层兼容修复）");
     }
 
     /**
