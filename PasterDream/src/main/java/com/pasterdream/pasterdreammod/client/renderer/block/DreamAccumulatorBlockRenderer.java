@@ -13,7 +13,7 @@ import software.bernie.geckolib.renderer.GeoBlockRenderer;
  * 渲染流程：
  * 1. 从 geo/dream_accumulator.geo.json 加载模型
  * 2. 从 textures/block/dream_accumulator.png 加载纹理
- * 3. 从 animations/dream_accumulator.animation.json 加载动画
+ * 3. 从 animations/block/dream_accumulator.animation.json 加载动画
  * 4. 根据 BlockEntity 的动画状态进行渲染
  */
 public class DreamAccumulatorBlockRenderer extends GeoBlockRenderer<DreamAccumulatorBlockEntity> {

@@ -12,7 +12,7 @@ import software.bernie.geckolib.model.GeoModel;
  * 资源文件路径：
  * - 模型：assets/pasterdream/geo/dream_meter.geo.json
  * - 纹理：assets/pasterdream/textures/item/dream_meter.png
- * - 动画：assets/pasterdream/animations/dream_meter.animation.json
+ * - 动画：assets/pasterdream/animations/entity/dream_meter.animation.json
  */
 public class DreamMeterItemModel extends GeoModel<DreamMeterItem> {
 
