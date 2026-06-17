@@ -5,8 +5,6 @@ import com.pasterdream.pasterdreammod.api.curio.model.CurioSlot;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import top.theillusivec4.curios.api.client.ICurioRenderer;
-
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -56,9 +54,10 @@ public final class CurioAPI {
     /** 渲染器注册信息缓存：item_full_name -> render_type */
     static final Map<String, String> RENDERER_REGISTRY = new LinkedHashMap<>();
 
-    /** 渲染器供应商缓存：item_full_name -> Supplier<ICurioRenderer>
-     *  用于在客户端初始化时调用 CuriosRendererRegistry.register() */
-    static final Map<String, Supplier<ICurioRenderer>> RENDERER_SUPPLIERS = new LinkedHashMap<>();
+    /** 渲染器供应商缓存：item_full_name -> Supplier<?>
+     *  用于在客户端初始化时调用 CuriosRendererRegistry.register()
+     *  实际类型为 Supplier&lt;ICurioRenderer&gt;，使用通配符避免 API 模块引用客户端类 */
+    static final Map<String, Supplier<?>> RENDERER_SUPPLIERS = new LinkedHashMap<>();
 
     /** 已注册的饰品列表（按注册顺序） */
     static final List<CurioRegistration> REGISTERED_CURIOS = new ArrayList<>();
@@ -88,9 +87,9 @@ public final class CurioAPI {
     /**
      * 获取所有已配置了渲染器的饰品供应商映射。
      *
-     * @return item_full_name -> Supplier<ICurioRenderer>
+     * @return item_full_name -> Supplier<?>（实际类型为 Supplier&lt;ICurioRenderer&gt;）
      */
-    public static Map<String, Supplier<ICurioRenderer>> getRendererSuppliers() {
+    public static Map<String, Supplier<?>> getRendererSuppliers() {
         return Collections.unmodifiableMap(RENDERER_SUPPLIERS);
     }
 
