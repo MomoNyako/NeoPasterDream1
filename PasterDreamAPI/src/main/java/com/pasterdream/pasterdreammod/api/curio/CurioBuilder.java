@@ -18,6 +18,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
+import top.theillusivec4.curios.api.client.ICurioRenderer;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -52,8 +54,8 @@ public class CurioBuilder {
     // 自定义物品工厂（替代默认的通用 CurioItem）
     private CurioItemFactory itemFactory = null;
 
-    // 自定义渲染器供应商（实际类型为 Supplier<ICurioRenderer>，使用通配符避免引用客户端类）
-    private Supplier<?> rendererSupplier = null;
+    // 自定义渲染器供应商
+    private Supplier<ICurioRenderer> rendererSupplier = null;
 
     /**
      * @param registry 物品注册器
@@ -242,7 +244,7 @@ public class CurioBuilder {
      * @param renderer 渲染器供应商
      * @return 当前构建器
      */
-    public CurioBuilder renderer(Supplier<?> renderer) {
+    public CurioBuilder renderer(Supplier<ICurioRenderer> renderer) {
         this.rendererSupplier = Objects.requireNonNull(renderer, "rendererSupplier 不能为空");
         this.renderType = "custom";
         return this;
