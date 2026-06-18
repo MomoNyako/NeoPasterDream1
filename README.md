@@ -6,6 +6,7 @@
 | ------ | ------------------- |----------------------------|------|
 | **P0** | CurioAPI 引用客户端类     | 用 `Supplier<ICurioRenderer>` 延迟加载，或拆分 client/common | 已修复  |
 | **P0** | 双重注册残留              | 移除旧 `MOB_EFFECTS` 和 `STRUCTURE_TYPES` 注册器           | 已修复  |
+| **P0** | 粒子Provider缺失 | 为SHADOW_STONE、SPORE、FOX_FIRE_0/1添加ClientSetup Provider注册 | 未修复 |
 | **P1** | 缺少统一注册入口            | 新增 `PasterDreamAPI.registerAll(modEventBus)`        | 修复中  |
 | **P1** | 日志过多                | 全部降为 `debug`，仅保留启动 banner 为 `info`                  | 计划中  |
 | **P1** | 粒子新旧混用              | 迁移剩余 7 个旧式粒子到 ParticleAPI                           | 未进行  |
