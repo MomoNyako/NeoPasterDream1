@@ -6,7 +6,6 @@ import com.pasterdream.pasterdreammod.data.PDBlockTagProvider;
 import com.pasterdream.pasterdreammod.registry.PDBlockEntities;
 import com.pasterdream.pasterdreammod.registry.PDBlocks;
 import com.pasterdream.pasterdreammod.registry.PDCreativeTabs;
-import com.pasterdream.pasterdreammod.registry.PDEffects;
 import com.pasterdream.pasterdreammod.registry.PDEntities;
 import com.pasterdream.pasterdreammod.registry.PDEntityEvents;
 import com.pasterdream.pasterdreammod.registry.PDFeatures;
@@ -27,11 +26,8 @@ import com.pasterdream.pasterdreammod.api.ruin.RuinAPI;
 import com.pasterdream.pasterdreammod.registry.PDParticles;
 import com.pasterdream.pasterdreammod.registry.PDPotions;
 import com.pasterdream.pasterdreammod.registry.PDSounds;
-import com.pasterdream.pasterdreammod.registry.PDStructures;
 import com.pasterdream.pasterdreammod.worldgen.decor.DecorationRegistry;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -39,7 +35,6 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
@@ -90,12 +85,13 @@ public class PasterDreamMod {
         // 注册创造模式物品栏
         PDCreativeTabs.TABS.register(modEventBus);
 
-        // 注册状态效果（BUFF/DEBUFF）
-        // TODO: 过渡期双重注册 —— 下个主版本移除 PDEffects.MOB_EFFECTS，仅保留 MobEffectAPI.REGISTRY
-        @SuppressWarnings({"deprecation", "removal"})
-        DeferredRegister<MobEffect> _legacyEffects = PDEffects.MOB_EFFECTS;
-        _legacyEffects.register(modEventBus);
+        // 注册状态效果（BUFF/DEBUFF）—— 通过 MobEffectAPI 统一注册
         MobEffectAPI.REGISTRY.register(modEventBus);
+
+        // 强制加载 PDEffects 类，确保所有效果在 RegisterEvent 触发前完成注册
+        // PDPotions 的静态字段会引用 PDEffects 的效果，需要提前初始化
+        try { Class.forName("com.pasterdream.pasterdreammod.registry.PDEffects"); }
+        catch (ClassNotFoundException ignored) {}
 
         // 注册药水（可酿造）
         PDPotions.POTIONS.register(modEventBus);
@@ -108,11 +104,7 @@ public class PasterDreamMod {
 
         // 染梦维度的注册由 data/pasterdream/dimension/dyedream_world.json 数据驱动
 
-        // 注册结构类型
-        // TODO: 过渡期双重注册 —— 下个主版本移除 PDStructures.STRUCTURE_TYPES，仅保留 RuinAPI.REGISTRY
-        @SuppressWarnings({"deprecation", "removal"})
-        DeferredRegister<StructureType<?>> _legacyStructures = PDStructures.STRUCTURE_TYPES;
-        _legacyStructures.register(modEventBus);
+        // 注册结构类型 —— 通过 RuinAPI 统一注册
         RuinAPI.REGISTRY.register(modEventBus);
 
         // 注册染梦遗迹结构（染梦列车、巨型染梦树、粉红菇屋等）
