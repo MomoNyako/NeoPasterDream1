@@ -27,6 +27,8 @@ import net.minecraft.world.phys.Vec3;
  * 注意：运行此示例会实际生成 JSON 文件到 resources 目录！
  * 运行后请检查 {@code src/main/resources/data/pasterdream/dimension_type/} 和
  * {@code src/main/resources/data/pasterdream/dimension/} 目录下的文件。
+ * <p>
+ * 已迁移到 src/test/java，避免在 dedicated server 上被加载。
  */
 public class DimensionApiDemo {
 
@@ -214,7 +216,7 @@ public class DimensionApiDemo {
     /**
      * 演示多噪声生物群系维度的创建方式（类似染梦世界）
      * <p>
-     * 使用 {@link DimensionBuilder#addBiome} 方法逐个添加生物群系，
+     * 使用 {@link com.pasterdream.pasterdreammod.api.dimension.builder.DimensionBuilder#addBiome} 方法逐个添加生物群系，
      * 每个群系可配置温度/湿度/大陆性/怪异度/侵蚀度参数范围。
      */
     public static void demoMultiNoiseBiomeDimension() {

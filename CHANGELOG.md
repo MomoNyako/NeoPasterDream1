@@ -1,3 +1,35 @@
+# v4 — LOVE_U 负责的错误修复完成
+
+> **修复日期**：2026-06-18  
+> **执行人**：LOVE_U  
+> **对照文档**：[`README.md`](README.md)、[`API_REVIEW_REPORT.md`](API_REVIEW_REPORT.md)
+
+## 修复清单
+
+| 优先级 | 问题 | 修复内容 | 状态 |
+|:------:|------|----------|:----:|
+| **P0** | 粒子 Provider 缺失 | 新建 `ShadowStoneParticle`、`SporeParticle`、`FoxFire0Particle`、`FoxFire1Particle` 并在 `ClientSetup` 注册 Provider | 已修复 |
+| **P0** | `DimensionApiDemo` 引用客户端类 | 将 `dimension/example/` 下 `DimensionApiDemo.java` 与 `DimensionJsonGenerator.java` 迁移到 `PasterDreamAPI/src/test/java` | 已修复 |
+| P1 | 缺少统一注册入口 | 在 `PasterDreamAPI` 实现 `registerAll(IEventBus)`，统一注册 8 个 API DeferredRegister；在 `PasterDreamMod` 构造函数中调用并移除重复注册 | 已修复 |
+
+## 关键代码变更
+
+- **`PasterDreamAPI.java`**：新增 `registerAll(IEventBus modEventBus)` 方法，统一注册 `BlockAPI`、`ItemMigrationAPI`、`EntityAPI`、`MobEffectAPI`、`ParticleAPI`、`RuinAPI`、`CurioAPI` 与 `ApiSoundRegistry.DIMENSION_SOUNDS`。
+- **`PasterDreamMod.java`**：构造函数开头调用 `PasterDreamAPI.registerAll(modEventBus)`，并移除原先分散的 API 注册器调用；为避免 `ParticleAPI.REGISTRY` 重复注册，将 `PDParticles.PARTICLE_TYPES.register(...)` 改为触发类加载的 `PDParticles.register()`。
+- **`ClientSetup.java`**：已注册缺失的 4 个粒子 Provider（`SHADOW_STONE`、`SPORE`、`FOX_FIRE_0`、`FOX_FIRE_1`）。
+- **文件迁移**：`PasterDreamAPI/src/main/java/.../api/dimension/example/` → `PasterDreamAPI/src/test/java/.../api/dimension/example/`，消除 dedicated server 加载客户端类 `DimensionSpecialEffects` 的风险。
+
+## 编译验证
+
+```text
+BUILD SUCCESSFUL in 19s
+4 actionable tasks: 2 executed, 2 up-to-date
+```
+
+剩余 1 条 Curio 弃用警告（`ICurioItem.getAttributeModifiers(SlotContext,UUID,ItemStack)`），属 P1 计划内遗留项，不在本次修复范围。
+
+***
+
 # v3 — PasterDreamAPI 全面重构审查报告
 
 > **来源说明**：本节内容完整整合自 [`API_REVIEW_REPORT.md`](API_REVIEW_REPORT.md)（审查日期：2026-06-18），用于在 CHANGELOG 中集中记录本次 API 质量审查结果。

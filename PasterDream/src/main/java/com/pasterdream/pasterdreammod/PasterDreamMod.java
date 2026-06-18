@@ -12,21 +12,17 @@ import com.pasterdream.pasterdreammod.registry.PDFeatures;
 import com.pasterdream.pasterdreammod.registry.PDFluids;
 import com.pasterdream.pasterdreammod.registry.PDFluidsType;
 import com.pasterdream.pasterdreammod.api.entity.EntityAPI;
-import com.pasterdream.pasterdreammod.api.itemmigration.ItemMigrationAPI;
 import com.pasterdream.pasterdreammod.registry.PDItems;
 import com.pasterdream.pasterdreammod.registry.PDMenus;
 import com.pasterdream.pasterdreammod.registry.ModDecorations;
 import com.pasterdream.pasterdreammod.registry.PDRuinsRegistration;
 import com.pasterdream.pasterdreammod.api.ApiCodeGenConfig;
-import com.pasterdream.pasterdreammod.api.ApiSoundRegistry;
-import com.pasterdream.pasterdreammod.api.block.BlockAPI;
-import com.pasterdream.pasterdreammod.api.curio.CurioAPI;
-import com.pasterdream.pasterdreammod.api.effect.MobEffectAPI;
-import com.pasterdream.pasterdreammod.api.ruin.RuinAPI;
+
 import com.pasterdream.pasterdreammod.registry.PDParticles;
 import com.pasterdream.pasterdreammod.registry.PDPotions;
 import com.pasterdream.pasterdreammod.registry.PDSounds;
 import com.pasterdream.pasterdreammod.worldgen.decor.DecorationRegistry;
+import com.pasterdream.pasterdreammod.api.PasterDreamAPI;
 import net.minecraft.data.DataGenerator;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -67,14 +63,14 @@ public class PasterDreamMod {
      * @param modContainer NeoForge 模组容器
      */
     public PasterDreamMod(IEventBus modEventBus, ModContainer modContainer) {
-        // 注册方块
+        // 统一注册 PasterDreamAPI 模块下所有 DeferredRegister
+        PasterDreamAPI.registerAll(modEventBus);
+
+        // 注册主模块方块
         PDBlocks.BLOCKS.register(modEventBus);
 
-        // 注册物品
+        // 注册主模块物品
         PDItems.ITEMS.register(modEventBus);
-
-        // 注册 API 物品移植注册器（由 ItemMigrationAPI 管理）
-        ItemMigrationAPI.REGISTRY.register(modEventBus);
 
         // 注册方块实体
         PDBlockEntities.BLOCK_ENTITIES.register(modEventBus);
@@ -84,9 +80,6 @@ public class PasterDreamMod {
 
         // 注册创造模式物品栏
         PDCreativeTabs.TABS.register(modEventBus);
-
-        // 注册状态效果（BUFF/DEBUFF）—— 通过 MobEffectAPI 统一注册
-        MobEffectAPI.REGISTRY.register(modEventBus);
 
         // 强制加载 PDEffects 类，确保所有效果在 RegisterEvent 触发前完成注册
         // PDPotions 的静态字段会引用 PDEffects 的效果，需要提前初始化
@@ -99,13 +92,7 @@ public class PasterDreamMod {
         // 注册自定义声音事件（包括维度背景音乐）
         PDSounds.SOUND_EVENTS.register(modEventBus);
 
-        // 注册 API 层面的维度背景音乐 SoundEvent
-        ApiSoundRegistry.DIMENSION_SOUNDS.register(modEventBus);
-
         // 染梦维度的注册由 data/pasterdream/dimension/dyedream_world.json 数据驱动
-
-        // 注册结构类型 —— 通过 RuinAPI 统一注册
-        RuinAPI.REGISTRY.register(modEventBus);
 
         // 注册染梦遗迹结构（染梦列车、巨型染梦树、粉红菇屋等）
         // 必须在构造器中注册，因为 RuinBuilder.build() 会向 DeferredRegister 添加新条目
@@ -114,11 +101,9 @@ public class PasterDreamMod {
         // 注册菜单类型
         PDMenus.MENUS.register(modEventBus);
 
-        // 注册粒子类型
-        PDParticles.PARTICLE_TYPES.register(modEventBus);
-
-        // 注册饰品（CurioAPI）
-        CurioAPI.REGISTRY.register(modEventBus);
+        // 触发 PDParticles 类加载，确保粒子类型静态字段填充到 ParticleAPI.REGISTRY
+        // ParticleAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
+        PDParticles.register();
 
         // 注册自定义特征（如云朵团块生成器）
         PDFeatures.FEATURES.register(modEventBus);

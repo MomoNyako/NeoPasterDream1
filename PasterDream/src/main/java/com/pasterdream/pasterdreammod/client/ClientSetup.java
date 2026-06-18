@@ -365,7 +365,13 @@ public class ClientSetup {
         event.registerSpriteSet((SimpleParticleType) PDParticles.FEATHER_WHITE_PARTICLE.particleType(), FeatherWhiteParticle.Provider::new);
         event.registerSpriteSet((SimpleParticleType) PDParticles.DYEDREAM_0_PARTICLE.particleType(), DyedreamParticle.Provider::new);
 
-        PasterDreamMod.LOGGER.info("[ClientSetup] 粒子提供器注册完成，共 11 个粒子类型");
+        // 注册缺失的 4 个粒子 Provider（SHADOW_STONE / SPORE / FOX_FIRE_0 / FOX_FIRE_1）
+        event.registerSpriteSet(PDParticles.SHADOW_STONE_PARTICLE.get(), ShadowStoneParticle.Provider::new);
+        event.registerSpriteSet(PDParticles.SPORE_PARTICLE.get(), SporeParticle.Provider::new);
+        event.registerSpriteSet(PDParticles.FOX_FIRE_0_PARTICLE.get(), FoxFire0Particle.Provider::new);
+        event.registerSpriteSet(PDParticles.FOX_FIRE_1_PARTICLE.get(), FoxFire1Particle.Provider::new);
+
+        PasterDreamMod.LOGGER.info("[ClientSetup] 粒子提供器注册完成，共 15 个粒子类型");
     }
 
     /**

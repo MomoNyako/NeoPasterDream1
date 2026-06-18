@@ -18,6 +18,8 @@ import java.io.IOException;
  * .\gradlew generateDimensionTestJsons
  * }</pre>
  * 或直接在 IDE 中运行 main 方法。
+ * <p>
+ * 已迁移到 src/test/java，避免随 API JAR 发布。
  */
 public class DimensionJsonGenerator {
 
