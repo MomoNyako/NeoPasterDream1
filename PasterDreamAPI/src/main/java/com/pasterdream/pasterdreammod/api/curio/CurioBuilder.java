@@ -338,15 +338,14 @@ public class CurioBuilder {
 
         @Override
         public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
-                SlotContext slotContext, UUID uuid, ItemStack stack) {
+                SlotContext slotContext, ResourceLocation id, ItemStack stack) {
             Multimap<Holder<Attribute>, AttributeModifier> modifiers = HashMultimap.create();
             for (CurioAttributeMod mod : attributeMods) {
                 ResourceLocation attrId = ResourceLocation.parse(mod.attributeId());
                 Holder<Attribute> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(attrId).orElse(null);
                 if (attribute != null) {
-                    String modName = getDescriptionId(stack) + "_" + mod.attributeId().replace(':', '_');
                     modifiers.put(attribute, new AttributeModifier(
-                            ResourceLocation.parse(mod.uuid()),
+                            ResourceLocation.parse("pasterdream:" + mod.uuid().replace("-", "_").toLowerCase()),
                             mod.amount(),
                             mod.toOperation()));
                 }

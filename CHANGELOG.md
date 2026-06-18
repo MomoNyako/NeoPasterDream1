@@ -1,3 +1,30 @@
+# v5 — MomoNyako 负责的 CurioBuilder API 迁移
+
+> **修复日期**：2026-06-18  
+> **执行人**：MomoNyako  
+> **对照文档**：[`README.md`](README.md)、[`API_REVIEW_REPORT.md`](API_REVIEW_REPORT.md)
+
+## 修复清单
+
+| 优先级 | 问题 | 修复内容 | 状态 |
+|:------:|------|----------|:----:|
+| P1 | `CurioBuilder` 使用已弃用 `ICurioItem` API | 迁移 `getAttributeModifiers` 方法签名从 `(SlotContext, UUID, ItemStack)` 到 `(SlotContext, ResourceLocation, ItemStack)`，修复运行时属性修饰器不生效的缺陷 | 已修复 |
+
+## 关键代码变更
+
+- **`CurioBuilder.java`**：`CurioAPIBuiltItem.getAttributeModifiers()` 方法签名从 `(SlotContext, UUID, ItemStack)` 迁移为 `(SlotContext, ResourceLocation, ItemStack)`，与 Curios 9.5.1+1.21.1 新 API 对齐；删除未使用的 `modName` 变量；更新修饰器标识符生成逻辑为 `"pasterdream:" + mod.uuid().replace("-", "_").toLowerCase()`。
+
+## 编译验证
+
+```text
+BUILD SUCCESSFUL in 10s
+2 actionable tasks: 1 executed, 1 up-to-date
+```
+
+Curio 弃用警告已消除。
+
+***
+
 # v4 — LOVE_U 负责的错误修复完成
 
 > **修复日期**：2026-06-18  
@@ -27,7 +54,7 @@ BUILD SUCCESSFUL in 20s
 10 actionable tasks: 1 executed, 9 up-to-date
 ```
 
-剩余 1 条 Curio 弃用警告（`ICurioItem.getAttributeModifiers(SlotContext,UUID,ItemStack)`），属 P1 计划内遗留项，不在本次修复范围。
+Curio 弃用警告已由 v5 修复。
 
 ***
 
