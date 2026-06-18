@@ -15,15 +15,16 @@
 ## 关键代码变更
 
 - **`PasterDreamAPI.java`**：新增 `registerAll(IEventBus modEventBus)` 方法，统一注册 `BlockAPI`、`ItemMigrationAPI`、`EntityAPI`、`MobEffectAPI`、`ParticleAPI`、`RuinAPI`、`CurioAPI` 与 `ApiSoundRegistry.DIMENSION_SOUNDS`。
-- **`PasterDreamMod.java`**：构造函数开头调用 `PasterDreamAPI.registerAll(modEventBus)`，并移除原先分散的 API 注册器调用；为避免 `ParticleAPI.REGISTRY` 重复注册，将 `PDParticles.PARTICLE_TYPES.register(...)` 改为触发类加载的 `PDParticles.register()`。
+- **`PasterDreamMod.java`**：构造函数开头调用 `PasterDreamAPI.registerAll(modEventBus)`，并移除原先分散的 API 注册器调用；发现 `PDBlocks.BLOCKS`、`PDEntities.ENTITY_TYPES`、`PDParticles.PARTICLE_TYPES` 均指向 API 模块的 `BlockAPI.REGISTRY`/`EntityAPI.REGISTRY`/`ParticleAPI.REGISTRY`，已由 `registerAll()` 统一注册，因此将三处 `.register(modEventBus)` 改为触发类加载的 `.getClass()` 调用，避免重复注册。
 - **`ClientSetup.java`**：已注册缺失的 4 个粒子 Provider（`SHADOW_STONE`、`SPORE`、`FOX_FIRE_0`、`FOX_FIRE_1`）。
 - **文件迁移**：`PasterDreamAPI/src/main/java/.../api/dimension/example/` → `PasterDreamAPI/src/test/java/.../api/dimension/example/`，消除 dedicated server 加载客户端类 `DimensionSpecialEffects` 的风险。
+- **`PasterDreamAPI/build.gradle`**：为 `test` sourceSet 调用 `addModdingDependenciesTo(sourceSets.test)` 提供 Minecraft 类路径，并关闭 `test.failOnNoDiscoveredTests`，使示例类能编译且不会因无 JUnit 测试而中断 `build`。
 
 ## 编译验证
 
 ```text
-BUILD SUCCESSFUL in 19s
-4 actionable tasks: 2 executed, 2 up-to-date
+BUILD SUCCESSFUL in 20s
+10 actionable tasks: 1 executed, 9 up-to-date
 ```
 
 剩余 1 条 Curio 弃用警告（`ICurioItem.getAttributeModifiers(SlotContext,UUID,ItemStack)`），属 P1 计划内遗留项，不在本次修复范围。

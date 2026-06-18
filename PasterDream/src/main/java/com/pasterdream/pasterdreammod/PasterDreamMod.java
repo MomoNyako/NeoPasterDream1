@@ -66,8 +66,10 @@ public class PasterDreamMod {
         // 统一注册 PasterDreamAPI 模块下所有 DeferredRegister
         PasterDreamAPI.registerAll(modEventBus);
 
-        // 注册主模块方块
-        PDBlocks.BLOCKS.register(modEventBus);
+        // 触发 PDBlocks 类加载，确保方块静态字段填充到 BlockAPI.REGISTRY
+        // BlockAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
+        try { Class.forName(PDBlocks.class.getName()); }
+        catch (ClassNotFoundException ignored) {}
 
         // 注册主模块物品
         PDItems.ITEMS.register(modEventBus);
@@ -75,8 +77,10 @@ public class PasterDreamMod {
         // 注册方块实体
         PDBlockEntities.BLOCK_ENTITIES.register(modEventBus);
 
-        // 注册实体类型
-        PDEntities.ENTITY_TYPES.register(modEventBus);
+        // 触发 PDEntities 类加载，确保实体静态字段填充到 EntityAPI.REGISTRY
+        // EntityAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
+        try { Class.forName(PDEntities.class.getName()); }
+        catch (ClassNotFoundException ignored) {}
 
         // 注册创造模式物品栏
         PDCreativeTabs.TABS.register(modEventBus);
