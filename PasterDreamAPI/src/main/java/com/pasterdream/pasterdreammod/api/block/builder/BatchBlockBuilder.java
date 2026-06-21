@@ -182,6 +182,7 @@ public class BatchBlockBuilder {
             int capturedIndex = index;
             results.put(fullName,
                     registry.registerBlock(fullName, p -> factory.apply(capturedIndex, p), props));
+            BlockAPI.putBlock(fullName, results.get(fullName));
             if (config != null) {
                 BlockAPI.putConfig(fullName, config);
             }

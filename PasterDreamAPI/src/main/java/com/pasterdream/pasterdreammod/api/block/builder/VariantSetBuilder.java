@@ -373,24 +373,28 @@ public class VariantSetBuilder {
             stairs = registry.registerBlock(baseName + "_stairs",
                     p -> new StairBlock(baseBlock.get().defaultBlockState(), p),
                     BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_stairs", stairs);
         }
 
         if (hasSlab) {
             Block ref = slabReference != null ? slabReference : net.minecraft.world.level.block.Blocks.OAK_SLAB;
             slab = registry.registerBlock(baseName + "_slab",
                     SlabBlock::new, BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_slab", slab);
         }
 
         if (hasWall) {
             Block ref = wallReference != null ? wallReference : net.minecraft.world.level.block.Blocks.COBBLESTONE_WALL;
             wall = registry.registerBlock(baseName + "_wall",
                     WallBlock::new, BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_wall", wall);
         }
 
         if (hasFence) {
             Block ref = fenceReference != null ? fenceReference : net.minecraft.world.level.block.Blocks.OAK_FENCE;
             fence = registry.registerBlock(baseName + "_fence",
                     FenceBlock::new, BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_fence", fence);
         }
 
         if (hasFenceGate) {
@@ -399,6 +403,7 @@ public class VariantSetBuilder {
             fenceGate = registry.registerBlock(baseName + "_fencegate",
                     p -> new FenceGateBlock(wt, p),
                     BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_fencegate", fenceGate);
         }
 
         if (hasDoor) {
@@ -407,6 +412,7 @@ public class VariantSetBuilder {
             door = registry.registerBlock(baseName + "_door",
                     p -> new DoorBlock(bst, p),
                     BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_door", door);
         }
 
         if (hasTrapdoor) {
@@ -415,6 +421,7 @@ public class VariantSetBuilder {
             trapdoor = registry.registerBlock(baseName + "_trapdoor",
                     p -> new TrapDoorBlock(bst, p),
                     BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_trapdoor", trapdoor);
         }
 
         if (hasPressurePlate) {
@@ -423,6 +430,7 @@ public class VariantSetBuilder {
             pressurePlate = registry.registerBlock(baseName + "_pressure_plate",
                     p -> new PressurePlateBlock(bst, p),
                     BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_pressure_plate", pressurePlate);
         }
 
         if (hasButton) {
@@ -431,6 +439,7 @@ public class VariantSetBuilder {
             button = registry.registerBlock(baseName + "_button",
                     p -> new ButtonBlock(bst, buttonTickDelay, p),
                     BlockBehaviour.Properties.ofFullCopy(ref));
+            BlockAPI.putBlock(baseName + "_button", button);
         }
 
         if (stairs == null && slab == null && wall == null && fence == null
