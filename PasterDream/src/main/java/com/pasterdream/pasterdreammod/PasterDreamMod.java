@@ -74,8 +74,10 @@ public class PasterDreamMod {
         // 注册主模块物品
         PDItems.ITEMS.register(modEventBus);
 
-        // 注册方块实体
-        PDBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        // 触发 PDBlockEntities 类加载，确保方块实体静态字段填充到 BlockEntityAPI.REGISTRY
+        // BlockEntityAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
+        try { Class.forName(PDBlockEntities.class.getName()); }
+        catch (ClassNotFoundException e) { LOGGER.debug("Failed to load class: {}", PDBlockEntities.class.getName(), e); }
 
         // 触发 PDEntities 类加载，确保实体静态字段填充到 EntityAPI.REGISTRY
         // EntityAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
@@ -102,8 +104,10 @@ public class PasterDreamMod {
         // 必须在构造器中注册，因为 RuinBuilder.build() 会向 DeferredRegister 添加新条目
         PDRuinsRegistration.register();
 
-        // 注册菜单类型
-        PDMenus.MENUS.register(modEventBus);
+        // 触发 PDMenus 类加载，确保菜单静态字段填充到 MenuAPI.REGISTRY
+        // MenuAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
+        try { Class.forName(PDMenus.class.getName()); }
+        catch (ClassNotFoundException e) { LOGGER.debug("Failed to load class: {}", PDMenus.class.getName(), e); }
 
         // 触发 PDParticles 类加载，确保粒子类型静态字段填充到 ParticleAPI.REGISTRY
         // ParticleAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
@@ -118,8 +122,10 @@ public class PasterDreamMod {
         // 注册流体类型
         PDFluidsType.FLUID_TYPES.register(modEventBus);
 
-        // 注册流体
-        PDFluids.FLUIDS.register(modEventBus);
+        // 触发 PDFluids 类加载，确保流体静态字段填充到 FluidAPI.REGISTRY
+        // FluidAPI.REGISTRY 已由 PasterDreamAPI.registerAll() 统一注册，此处避免重复注册
+        try { Class.forName(PDFluids.class.getName()); }
+        catch (ClassNotFoundException e) { LOGGER.debug("Failed to load class: {}", PDFluids.class.getName(), e); }
 
         // 配置刷怪蛋模型自动生成输出目录
         // 所有通过 EntityAPI 注册了 .spawnEgg() 的实体，在 build() 时自动生成模型 JSON
@@ -165,8 +171,8 @@ public class PasterDreamMod {
      * @param event FML 通用设置事件
      */
     private void commonSetup(final FMLCommonSetupEvent event) {
-        LOGGER.info("===== PasterDreamMod 地形生成系统初始化 =====");
-        LOGGER.info("BiomeModifier 序列化器已注册: pasterdream:dyedream_features");
+        LOGGER.debug("===== PasterDreamMod 地形生成系统初始化 =====");
+        LOGGER.debug("BiomeModifier 序列化器已注册: pasterdream:dyedream_features");
 
         // 注册 API 装饰物（冰刺、冰之门等）
         ModDecorations.register();
@@ -175,17 +181,17 @@ public class PasterDreamMod {
         // ModDecorations.generateJson();
 
         // 输出预期的 BiomeModifier JSON 配置文件列表（用于测试时确认文件是否被正确加载）
-        LOGGER.info("预期的 BiomeModifier JSON 文件列表:");
-        LOGGER.info("  - neoforge/biome_modifier/dyedream_ores.json -> 注入矿石 (UNDERGROUND_ORES)");
-        LOGGER.info("    ├ pasterdream:ore_amber_candy");
-        LOGGER.info("    ├ pasterdream:ore_dyedreamdust");
-        LOGGER.info("    └ pasterdream:ore_dyedreamquartz");
-        LOGGER.info("  - neoforge/biome_modifier/dyedream_vegetation.json -> 注入树木与植被 (TOP_LAYER_MODIFICATION)");
-        LOGGER.info("    ├ pasterdream:dyedream_trees");
-        LOGGER.info("    ├ pasterdream:patch_dyedream_buds");
-        LOGGER.info("    ├ pasterdream:patch_pinkagaric");
-        LOGGER.info("    └ pasterdream:patch_dyedream_seagrass");
-        LOGGER.info("目标生物群系标签: #pasterdream:is_dyedream");
-        LOGGER.info("===== 地形生成系统初始化完成 =====");
+        LOGGER.debug("预期的 BiomeModifier JSON 文件列表:");
+        LOGGER.debug("  - neoforge/biome_modifier/dyedream_ores.json -> 注入矿石 (UNDERGROUND_ORES)");
+        LOGGER.debug("    ├ pasterdream:ore_amber_candy");
+        LOGGER.debug("    ├ pasterdream:ore_dyedreamdust");
+        LOGGER.debug("    └ pasterdream:ore_dyedreamquartz");
+        LOGGER.debug("  - neoforge/biome_modifier/dyedream_vegetation.json -> 注入树木与植被 (TOP_LAYER_MODIFICATION)");
+        LOGGER.debug("    ├ pasterdream:dyedream_trees");
+        LOGGER.debug("    ├ pasterdream:patch_dyedream_buds");
+        LOGGER.debug("    ├ pasterdream:patch_pinkagaric");
+        LOGGER.debug("    └ pasterdream:patch_dyedream_seagrass");
+        LOGGER.debug("目标生物群系标签: #pasterdream:is_dyedream");
+        LOGGER.debug("===== 地形生成系统初始化完成 =====");
     }
 }

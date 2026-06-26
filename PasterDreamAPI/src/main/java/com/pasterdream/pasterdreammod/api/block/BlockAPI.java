@@ -11,12 +11,13 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
  * 方块注册 API —— 将繁琐的方块注册集中管理，提供高效简洁的注册方式
  * <p>
- * 采用与 {@link com.pasterdream.pasterdreammod.api.itemmigration.ItemMigrationAPI} 相似的
+ * 采用与 {@link com.pasterdream.pasterdreammod.api.item.ItemAPI} 相似的
  * Facade 模式 + Builder 模式设计，覆盖三类常见方块注册场景：
  * <ul>
  *   <li><b>模式一（SimpleBlockBuilder）</b>：批量注册「换皮」基础方块，告别逐行 copy</li>
@@ -106,11 +107,11 @@ public final class BlockAPI {
      * 根据注册名获取 Block 实例，数据生成器中安全使用
      *
      * @param name 方块注册名
-     * @return Block 实例，若未注册返回 null
+     * @return 包含 Block 实例的 {@link Optional}，若未注册则返回空 Optional
      */
-    public static Block getBlock(String name) {
+    public static Optional<Block> getBlock(String name) {
         Supplier<? extends Block> supplier = BLOCK_SUPPLIERS.get(name);
-        return supplier != null ? supplier.get() : null;
+        return supplier != null ? Optional.of(supplier.get()) : Optional.empty();
     }
 
     // ======================== Builder 工厂方法 ========================
@@ -150,6 +151,17 @@ public final class BlockAPI {
      */
     public static BatchBlockBuilder batchRegister(String baseName) {
         return new BatchBlockBuilder(REGISTRY, baseName);
+    }
+
+    /**
+     * 重置所有静态缓存，供测试使用。
+     * <p>
+     * 清空方块配置表与方块 Supplier 表，使每次测试都在干净的缓存状态下运行。
+     * 注意：此方法不会取消 DeferredRegister 中的已注册方块，仅清除 API 层面的缓存数据。
+     */
+    public static void resetForTesting() {
+        BLOCK_CONFIGS.clear();
+        BLOCK_SUPPLIERS.clear();
     }
 
     private BlockAPI() {

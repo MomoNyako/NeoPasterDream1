@@ -4,7 +4,6 @@ import com.pasterdream.pasterdreammod.api.dimension.DimensionAPI;
 import com.pasterdream.pasterdreammod.api.dimension.DimensionResult;
 import com.pasterdream.pasterdreammod.api.dimension.gen.DimensionGenerator;
 import com.pasterdream.pasterdreammod.api.dimension.gen.DimensionTypeGenerator;
-import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -282,10 +281,8 @@ public class DimensionApiDemo {
         System.out.println("    └ 每个群系配置了 5 个噪声参数维度");
 
         // 额外演示：获取已缓存的维度结果
-        DimensionResult cached = DimensionAPI.getRegisteredDimension("demo_biomes");
-        if (cached != null) {
-            System.out.println("    📦 缓存命中: DimensionAPI.getRegisteredDimension() → " + cached.dimensionName());
-        }
+        DimensionAPI.getRegisteredDimension("demo_biomes").ifPresent(cached ->
+            System.out.println("    📦 缓存命中: DimensionAPI.getRegisteredDimension() → " + cached.dimensionName()));
     }
 
     // ========================================================================
@@ -367,12 +364,11 @@ public class DimensionApiDemo {
                 }
 
                 // 3. 获取已注册的维度结果（通过缓存）：
-                DimensionResult cached = DimensionAPI.getRegisteredDimension("dyedream_world");
-                if (cached != null) {
+                DimensionAPI.getRegisteredDimension("dyedream_world").ifPresent(cached -> {
                     ResourceKey<Level> levelKey = cached.levelKey();
                     ResourceKey<DimensionType> typeKey = cached.typeKey();
                     String effectsId = cached.effectsId();
-                }
+                });
 
                 // 4. 向后兼容（使用原有的 PDDimensions 常量）：
                 boolean isDyedream = PDDimensions.isDyedreamWorld(level);
@@ -384,12 +380,12 @@ public class DimensionApiDemo {
                 .build();
         DimensionAPI.cacheDimension(demoResult);
 
-        DimensionResult cached = DimensionAPI.getRegisteredDimension("demo_tool");
+        java.util.Optional<DimensionResult> cached = DimensionAPI.getRegisteredDimension("demo_tool");
         System.out.println("    ✅ 工具方法演示完成");
         System.out.println("    ├ DimensionResult.isDimension()     — 通过结果判断");
         System.out.println("    ├ DimensionAPI.isInDimension()     — 通过 API 判断");
         System.out.println("    ├ DimensionAPI.getRegisteredDimension() — 缓存查询");
-        System.out.println("    └ 缓存查询结果: " + (cached != null ? cached.dimensionName() : "null"));
+        System.out.println("    └ 缓存查询结果: " + cached.map(DimensionResult::dimensionName).orElse("null"));
     }
 
     // ========================================================================

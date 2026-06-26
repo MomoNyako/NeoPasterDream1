@@ -2,12 +2,15 @@ package com.pasterdream.pasterdreammod.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import javax.annotation.Nullable;
 
 /**
  * API 层的声音事件注册器。
@@ -51,6 +54,7 @@ public final class ApiSoundRegistry {
      * @param musicName 音乐名称（如 "dyedream_world"）
      * @return 已注册的 SoundEvent Supplier；若文件缺失则返回 {@code null}
      */
+    @Nullable
     public static synchronized Supplier<SoundEvent> registerDimensionMusic(String musicName) {
         if (DIMENSION_MUSIC_CACHE.containsKey(musicName)) {
             return DIMENSION_MUSIC_CACHE.get(musicName);
@@ -70,12 +74,28 @@ public final class ApiSoundRegistry {
                         ResourceLocation.fromNamespaceAndPath(PasterDreamAPI.MOD_ID, soundId)
                 ));
         DIMENSION_MUSIC_CACHE.put(musicName, supplier);
-        PasterDreamAPI.LOGGER.info("[ApiSoundRegistry] 已注册背景音乐 SoundEvent: {} (assets/{}/sounds/music/{}.ogg)",
+        PasterDreamAPI.LOGGER.debug("[ApiSoundRegistry] 已注册背景音乐 SoundEvent: {} (assets/{}/sounds/music/{}.ogg)",
                 soundId, PasterDreamAPI.MOD_ID, musicName);
         return supplier;
     }
 
-    public static Supplier<SoundEvent> getDimensionMusic(String musicName) {
-        return DIMENSION_MUSIC_CACHE.get(musicName);
+    /**
+     * 获取已注册的维度背景音乐 SoundEvent Supplier。
+     *
+     * @param musicName 音乐名称（与注册时一致）
+     * @return 包含 SoundEvent Supplier 的 {@link Optional}，如果未注册则返回空 Optional
+     */
+    public static Optional<Supplier<SoundEvent>> getDimensionMusic(String musicName) {
+        return Optional.ofNullable(DIMENSION_MUSIC_CACHE.get(musicName));
+    }
+
+    /**
+     * 重置所有静态缓存，供测试使用。
+     * <p>
+     * 清空已缓存的维度音乐 SoundEvent  Supplier，使每次测试都在干净的缓存状态下运行。
+     * 注意：此方法不会取消 DeferredRegister 中的已注册声音事件，仅清除 API 层面的缓存数据。
+     */
+    public static void resetForTesting() {
+        DIMENSION_MUSIC_CACHE.clear();
     }
 }

@@ -1,18 +1,23 @@
 package com.pasterdream.pasterdreammod.api.ruin.builder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.MapCodec;
 import com.pasterdream.pasterdreammod.api.PasterDreamAPI;
 import com.pasterdream.pasterdreammod.api.dimension.terrain.StructureTerrainNegotiator;
 import com.pasterdream.pasterdreammod.api.dimension.terrain.TerrainRequirements;
 import com.pasterdream.pasterdreammod.api.ruin.RuinResult;
-import com.pasterdream.pasterdreammod.api.ruin.gen.StructureTypeGenerator;
-import com.pasterdream.pasterdreammod.api.ruin.gen.TemplatePoolGenerator;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * 遗迹结构构建器 —— 采用 Builder 模式链式配置结构类型和 JSON 资源文件生成
@@ -36,11 +41,11 @@ import java.io.IOException;
  */
 public class RuinBuilder {
 
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
     private final String modId;
     private final String structureName;
     private final DeferredRegister<StructureType<?>> registry;
-    private final StructureTypeGenerator typeGenerator;
-    private final TemplatePoolGenerator poolGenerator;
 
     /** 生物群系标签（如 "#pasterdream:is_dyedream"） */
     private String biomeTag;
@@ -64,6 +69,14 @@ public class RuinBuilder {
     private String basePath;
     /** 自定义额外 JSON 字段 */
     private JsonObject extraFields;
+    /** 是否将起始位置投影到地形高度图上，默认为 true */
+    private boolean projectStartToHeightmap = true;
+    /** 距结构中心的最大距离，默认为 80 */
+    private int maxDistanceFromCenter = 80;
+    /** 是否使用扩展 hack，默认为 false */
+    private boolean useExpansionHack = false;
+    /** 模板池退回落，默认为 "minecraft:empty" */
+    private String poolFallback = "minecraft:empty";
     /** 大型结构的地形需求（null 表示为普通结构） */
     private TerrainRequirements terrainRequirements;
 
@@ -78,8 +91,6 @@ public class RuinBuilder {
         this.modId = modId;
         this.structureName = structureName;
         this.registry = registry;
-        this.typeGenerator = new StructureTypeGenerator(modId, structureName);
-        this.poolGenerator = new TemplatePoolGenerator(modId, structureName + "_pool");
         this.step = "surface_structures";
         this.size = 7;
         this.startHeight = 0;
@@ -254,7 +265,7 @@ public class RuinBuilder {
      */
     public RuinBuilder largeStructure(TerrainRequirements reqs) {
         this.terrainRequirements = reqs;
-        PasterDreamAPI.LOGGER.info("[RuinBuilder] 🏗️ 标记为大型结构: {} | 需求={}", structureName, reqs);
+        PasterDreamAPI.LOGGER.debug("[RuinBuilder] 🏗️ 标记为大型结构: {} | 需求={}", structureName, reqs);
         return this;
     }
 
@@ -291,8 +302,8 @@ public class RuinBuilder {
      * @throws RuntimeException      如果 JSON 文件写入失败
      */
     public RuinResult build() {
-        PasterDreamAPI.LOGGER.info("[RuinBuilder] ===== 开始构建遗迹结构: {} =====", structureName);
-        PasterDreamAPI.LOGGER.info("[RuinBuilder]   配置: biomeTag={}, templatePool={}, step={}, terrainAdaptation={}, size={}, startHeight={}",
+        PasterDreamAPI.LOGGER.debug("[RuinBuilder] ===== 开始构建遗迹结构: {} =====", structureName);
+        PasterDreamAPI.LOGGER.debug("[RuinBuilder]   配置: biomeTag={}, templatePool={}, step={}, terrainAdaptation={}, size={}, startHeight={}",
                 biomeTag, templatePool, step, terrainAdaptation, size, startHeight);
 
         // 验证必要参数
@@ -309,27 +320,26 @@ public class RuinBuilder {
         @SuppressWarnings("unchecked")
         StructureType<Structure> type = () -> (MapCodec<Structure>) codec;
         registry.register(structureName, () -> type);
-        PasterDreamAPI.LOGGER.info("[RuinBuilder] ✅ 已注册 StructureType: {}.{}", modId, structureName);
+        PasterDreamAPI.LOGGER.debug("[RuinBuilder] ✅ 已注册 StructureType: {}.{}", modId, structureName);
 
-        // 2. 配置并生成 JSON 资源文件
+        // 2. 生成 JSON 资源文件
         if (generateJsonFiles) {
-            configureGenerators();
             try {
-                PasterDreamAPI.LOGGER.info("[RuinBuilder] ===== 开始生成结构资源文件: {} =====", structureName);
+                PasterDreamAPI.LOGGER.debug("[RuinBuilder] ===== 开始生成结构资源文件: {} =====", structureName);
 
                 PasterDreamAPI.LOGGER.debug("[RuinBuilder] 生成 structure JSON → data/{}/worldgen/structure/{}.json", modId, structureName);
-                typeGenerator.saveToFile(basePath);
+                saveStructureJson();
 
                 PasterDreamAPI.LOGGER.debug("[RuinBuilder] 生成 template_pool JSON → data/{}/worldgen/template_pool/{}_pool.json", modId, structureName);
-                poolGenerator.saveToFile(basePath);
+                saveTemplatePoolJson();
 
-                PasterDreamAPI.LOGGER.info("[RuinBuilder] ✅ 结构资源文件生成完成: {}", structureName);
+                PasterDreamAPI.LOGGER.debug("[RuinBuilder] ✅ 结构资源文件生成完成: {}", structureName);
             } catch (IOException e) {
                 PasterDreamAPI.LOGGER.error("[RuinBuilder] ❌ 无法生成结构资源文件 [{}]: {}", structureName, e.getMessage(), e);
                 throw new RuntimeException("RuinBuilder: 无法生成结构资源文件 [" + structureName + "]", e);
             }
         } else {
-            PasterDreamAPI.LOGGER.info("[RuinBuilder] ⏭️ 跳过 JSON 文件生成: {} (generateJson=false)", structureName);
+            PasterDreamAPI.LOGGER.debug("[RuinBuilder] ⏭️ 跳过 JSON 文件生成: {} (generateJson=false)", structureName);
         }
 
         // 3. 创建并缓存 RuinResult
@@ -342,40 +352,89 @@ public class RuinBuilder {
         if (terrainRequirements != null) {
             StructureTerrainNegotiator negotiator = StructureTerrainNegotiator.getInstance();
             negotiator.registerLargeStructure(structureName, modId, terrainRequirements);
-            PasterDreamAPI.LOGGER.info("[RuinBuilder] 🔗 已注册大型结构到地形协商器: {}", structureName);
+            PasterDreamAPI.LOGGER.debug("[RuinBuilder] 🔗 已注册大型结构到地形协商器: {}", structureName);
         }
 
         com.pasterdream.pasterdreammod.api.ruin.RuinAPI.cacheRuin(result);
 
-        PasterDreamAPI.LOGGER.info("[RuinBuilder] ✅ 遗迹结构构建完成: {} | result={}", structureName, result);
+        PasterDreamAPI.LOGGER.debug("[RuinBuilder] ✅ 遗迹结构构建完成: {} | result={}", structureName, result);
         return result;
     }
 
     /**
-     * 配置所有内部生成器
+     * 生成并保存 structure JSON 文件
+     * <p>
+     * 目标路径：{@code {basePath}/data/{modId}/worldgen/structure/{structureName}.json}
+     *
+     * @throws IOException 如果文件写入失败
      */
-    private void configureGenerators() {
-        PasterDreamAPI.LOGGER.debug("[RuinBuilder] 配置内部生成器...");
+    private void saveStructureJson() throws IOException {
+        JsonObject root = new JsonObject();
 
-        // 配置 StructureTypeGenerator
-        String typeId = modId + ":" + structureName;
-        typeGenerator.type(typeId);
+        root.addProperty("type", modId + ":" + structureName);
         if (biomeTag != null) {
-            typeGenerator.biomes(biomeTag);
+            root.addProperty("biomes", biomeTag);
         }
-        typeGenerator.step(step);
+        root.addProperty("step", step);
         if (terrainAdaptation != null) {
-            typeGenerator.terrainAdaptation(terrainAdaptation);
+            root.addProperty("terrain_adaptation", terrainAdaptation);
         }
+        root.add("spawn_overrides", new JsonObject());
         if (templatePool != null) {
-            typeGenerator.startPool(templatePool);
+            root.addProperty("start_pool", templatePool);
         }
-        typeGenerator.size(size);
-        typeGenerator.startHeight(startHeight);
-        if (extraFields != null) {
-            typeGenerator.extraFields(extraFields);
+        root.addProperty("size", size);
+
+        JsonObject startHeightObj = new JsonObject();
+        startHeightObj.addProperty("type", "minecraft:absolute");
+        startHeightObj.addProperty("height", startHeight);
+        root.add("start_height", startHeightObj);
+
+        if (projectStartToHeightmap) {
+            root.addProperty("project_start_to_heightmap", "WORLD_SURFACE_WG");
+        }
+        root.addProperty("max_distance_from_center", maxDistanceFromCenter);
+        if (useExpansionHack) {
+            root.addProperty("use_expansion_hack", true);
+        }
+        if (extraFields != null && !extraFields.isEmpty()) {
+            for (var entry : extraFields.entrySet()) {
+                root.add(entry.getKey(), entry.getValue());
+            }
         }
 
-        PasterDreamAPI.LOGGER.debug("[RuinBuilder] 生成器配置完成: typeId={}", typeId);
+        Path outputDir = Paths.get(basePath, "data", modId, "worldgen", "structure");
+        Files.createDirectories(outputDir);
+
+        Path outputFile = outputDir.resolve(structureName + ".json");
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(root, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[RuinBuilder] ✅ 已生成 structure JSON → {}", outputFile);
+    }
+
+    /**
+     * 生成并保存 template_pool JSON 文件
+     * <p>
+     * 目标路径：{@code {basePath}/data/{modId}/worldgen/template_pool/{structureName}_pool.json}
+     *
+     * @throws IOException 如果文件写入失败
+     */
+    private void saveTemplatePoolJson() throws IOException {
+        JsonObject root = new JsonObject();
+        root.addProperty("name", modId + ":" + structureName + "_pool");
+        root.addProperty("fallback", poolFallback);
+        root.add("elements", new JsonArray());
+
+        Path outputDir = Paths.get(basePath, "data", modId, "worldgen", "template_pool");
+        Files.createDirectories(outputDir);
+
+        Path outputFile = outputDir.resolve(structureName + "_pool.json");
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(root, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[RuinBuilder] ✅ 已生成 template_pool JSON → {}", outputFile);
     }
 }

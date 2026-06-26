@@ -1,10 +1,13 @@
 package com.pasterdream.pasterdreammod.api;
 
 import com.pasterdream.pasterdreammod.api.block.BlockAPI;
+import com.pasterdream.pasterdreammod.api.blockentity.BlockEntityAPI;
 import com.pasterdream.pasterdreammod.api.curio.CurioAPI;
 import com.pasterdream.pasterdreammod.api.effect.MobEffectAPI;
 import com.pasterdream.pasterdreammod.api.entity.EntityAPI;
-import com.pasterdream.pasterdreammod.api.itemmigration.ItemMigrationAPI;
+import com.pasterdream.pasterdreammod.api.fluid.FluidAPI;
+import com.pasterdream.pasterdreammod.api.item.ItemAPI;
+import com.pasterdream.pasterdreammod.api.menu.MenuAPI;
 import com.pasterdream.pasterdreammod.api.particle.ParticleAPI;
 import com.pasterdream.pasterdreammod.api.ruin.RuinAPI;
 import net.neoforged.bus.api.IEventBus;
@@ -41,14 +44,17 @@ public final class PasterDreamAPI {
      */
     public static void registerAll(IEventBus modEventBus) {
         BlockAPI.REGISTRY.register(modEventBus);
-        ItemMigrationAPI.REGISTRY.register(modEventBus);
+        BlockEntityAPI.REGISTRY.register(modEventBus);
+        ItemAPI.REGISTRY.register(modEventBus);
         EntityAPI.REGISTRY.register(modEventBus);
         MobEffectAPI.REGISTRY.register(modEventBus);
         ParticleAPI.REGISTRY.register(modEventBus);
         RuinAPI.REGISTRY.register(modEventBus);
         CurioAPI.REGISTRY.register(modEventBus);
+        MenuAPI.REGISTRY.register(modEventBus);
+        FluidAPI.REGISTRY.register(modEventBus);
         ApiSoundRegistry.DIMENSION_SOUNDS.register(modEventBus);
 
-        LOGGER.debug("[PasterDreamAPI] 已统一注册 8 个 API 注册器到事件总线");
+        LOGGER.debug("[PasterDreamAPI] 已统一注册 11 个 API 注册器到事件总线");
     }
 }

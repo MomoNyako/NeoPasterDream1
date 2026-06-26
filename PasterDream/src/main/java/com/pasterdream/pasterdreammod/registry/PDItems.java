@@ -5,9 +5,9 @@ import com.pasterdream.pasterdreammod.api.curio.CurioAPI;
 import com.pasterdream.pasterdreammod.api.curio.model.CurioSlot;
 import com.pasterdream.pasterdreammod.api.effect.MobEffectAPI;
 import com.pasterdream.pasterdreammod.api.entity.EntityAPI;
-import com.pasterdream.pasterdreammod.api.itemmigration.ItemMigrationAPI;
-import com.pasterdream.pasterdreammod.api.itemmigration.model.MigrationCategory;
-import com.pasterdream.pasterdreammod.api.itemmigration.model.ToolSpec.ToolType;
+import com.pasterdream.pasterdreammod.api.item.ItemAPI;
+import com.pasterdream.pasterdreammod.api.item.model.MigrationCategory;
+import com.pasterdream.pasterdreammod.api.item.model.ToolSpec.ToolType;
 import com.pasterdream.pasterdreammod.item.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -369,7 +369,7 @@ public class PDItems {
     /**
      * 钛锭 (titanium_ingot)
      * 基础材料，稀有度为 UNCOMMON
-     * 使用 ITEMS.register() 统一注册，而非 ItemMigrationAPI，
+     * 使用 ITEMS.register() 统一注册，而非 ItemAPI，
      * 避免静态初始化阶段 DeferredItem.get() 触发 "unbound value" 错误
      */
     public static final DeferredItem<Item> TITANIUM_INGOT = ITEMS.register("titanium_ingot",
@@ -386,7 +386,7 @@ public class PDItems {
      * 基础材料，带有特殊描述文本
      */
     public static final DeferredItem<Item> MAGIC_STONE =
-            ItemMigrationAPI.simpleItem("magic_stone")
+            ItemAPI.simpleItem("magic_stone")
                     .tooltip("§7§o哪个法师的兜里不会踹几块魔法石呢？")
                     .build();
 
@@ -507,7 +507,7 @@ public class PDItems {
     public static final DeferredItem<Item> DYEDREAM_INGOT = ITEMS.registerSimpleItem("dyedream_ingot", new Item.Properties().stacksTo(64).rarity(Rarity.UNCOMMON));
     // ==================== API物品移植测试 ====================
     //
-    // 以下物品使用 ItemMigrationAPI 进行注册，验证API的编译正确性和可用性。
+    // 以下物品使用 ItemAPI 进行注册，验证API的编译正确性和可用性。
     // 覆盖 SimpleItemBuilder / FoodItemBuilder / ToolItemBuilder / CurioItemBuilder 四种类型。
     //
 
@@ -517,7 +517,7 @@ public class PDItems {
      * 原模组：new Item()，COMMON 稀有度，64堆叠
      */
     public static final DeferredItem<Item> GLASS_CUP =
-            ItemMigrationAPI.simpleItem("glass_cup").build();
+            ItemAPI.simpleItem("glass_cup").build();
 
     /**
      * 生面团 (dough)
@@ -525,7 +525,7 @@ public class PDItems {
      * 原模组：营养 1，饱食度 0.1f
      */
     public static final DeferredItem<Item> DOUGH =
-            ItemMigrationAPI.foodItem("dough")
+            ItemAPI.foodItem("dough")
                     .nutrition(1).saturationModifier(0.1f)
                     .build();
 
@@ -535,7 +535,7 @@ public class PDItems {
      * 原模组：耐久 225，速度 5.0，伤害+7，攻速 -3.15
      */
     public static final DeferredItem<Item> COPPER_AXE =
-            ItemMigrationAPI.toolItem("copper_axe")
+            ItemAPI.toolItem("copper_axe")
                     .type(ToolType.AXE)
                     .durability(225).miningSpeed(5.0f)
                     .attackDamage(7.0f).attackSpeed(-3.15f)
@@ -549,7 +549,7 @@ public class PDItems {
      * 原模组：耐久 225，速度 5.0，伤害+2，攻速 -3.0
      */
     public static final DeferredItem<Item> COPPER_SHOVEL =
-            ItemMigrationAPI.toolItem("copper_shovel")
+            ItemAPI.toolItem("copper_shovel")
                     .type(ToolType.SHOVEL)
                     .durability(225).miningSpeed(5.0f)
                     .attackDamage(2.0f).attackSpeed(-3.0f)
@@ -563,7 +563,7 @@ public class PDItems {
      * 原模组：耐久 225，速度 5.0，伤害+0，攻速 -1.5
      */
     public static final DeferredItem<Item> COPPER_HOE =
-            ItemMigrationAPI.toolItem("copper_hoe")
+            ItemAPI.toolItem("copper_hoe")
                     .type(ToolType.HOE)
                     .durability(225).miningSpeed(5.0f)
                     .attackDamage(0.0f).attackSpeed(-1.5f)
@@ -576,127 +576,127 @@ public class PDItems {
     // ==================== 剑类武器 ====================
 
     public static final DeferredItem<Item> BROKEN_HERO_SWORD =
-            ItemMigrationAPI.toolItem("broken_hero_sword")
+            ItemAPI.toolItem("broken_hero_sword")
                     .type(ToolType.SWORD).durability(100)
                     .attackDamage(6.0f).attackSpeed(-2.4f)
                     .enchantment(0)
                     .build();
     public static final DeferredItem<Item> COPPER_SWORD =
-            ItemMigrationAPI.toolItem("copper_sword")
+            ItemAPI.toolItem("copper_sword")
                     .type(ToolType.SWORD).durability(225)
                     .attackDamage(4.5f).attackSpeed(-2.4f)
                     .enchantment(12)
                     .repairWith(new ItemStack(Items.COPPER_INGOT))
                     .build();
     public static final DeferredItem<Item> CREATIVE_SWORD =
-            ItemMigrationAPI.toolItem("creative_sword")
+            ItemAPI.toolItem("creative_sword")
                     .type(ToolType.SWORD).durability(100)
                     .attackDamage(9.0f).attackSpeed(6.0f)
                     .enchantment(2)
                     .build();
     public static final DeferredItem<Item> DESERT_SWORD =
-            ItemMigrationAPI.toolItem("desert_sword")
+            ItemAPI.toolItem("desert_sword")
                     .type(ToolType.SWORD).durability(1561)
                     .attackDamage(10.0f).attackSpeed(-3.1f)
                     .enchantment(8)
                     .build();
     public static final DeferredItem<Item> DYEDREAM_SWORD_0 =
-            ItemMigrationAPI.toolItem("dyedream_sword_0")
+            ItemAPI.toolItem("dyedream_sword_0")
                     .type(ToolType.SWORD).durability(1314)
                     .attackDamage(8.0f).attackSpeed(-2.4f)
                     .enchantment(22)
                     .build();
     public static final DeferredItem<Item> DYEDREAM_SWORD =
-            ItemMigrationAPI.toolItem("dyedream_sword")
+            ItemAPI.toolItem("dyedream_sword")
                     .type(ToolType.SWORD).durability(1314)
                     .attackDamage(7.0f).attackSpeed(-2.4f)
                     .enchantment(22)
                     .build();
     public static final DeferredItem<Item> GRASS_SWORD =
-            ItemMigrationAPI.toolItem("grass_sword")
+            ItemAPI.toolItem("grass_sword")
                     .type(ToolType.SWORD).durability(874)
                     .attackDamage(6.0f).attackSpeed(-2.5f)
                     .enchantment(16)
                     .build();
     public static final DeferredItem<Item> ICESHADOW_HAMMER =
-            ItemMigrationAPI.toolItem("iceshadow_hammer")
+            ItemAPI.toolItem("iceshadow_hammer")
                     .type(ToolType.SWORD).durability(835)
                     .attackDamage(12.0f).attackSpeed(-3.3f)
                     .enchantment(2)
                     .build();
     public static final DeferredItem<Item> MOLTENGOLD_SWORD =
-            ItemMigrationAPI.toolItem("moltengold_sword")
+            ItemAPI.toolItem("moltengold_sword")
                     .type(ToolType.SWORD).durability(251)
                     .attackDamage(5.0f).attackSpeed(-2.3f)
                     .enchantment(23)
                     .build();
     public static final DeferredItem<Item> SHADOW_EROSION_SWORD =
-            ItemMigrationAPI.toolItem("shadow_erosion_sword")
+            ItemAPI.toolItem("shadow_erosion_sword")
                     .type(ToolType.SWORD).durability(1725)
                     .attackDamage(5.5f).attackSpeed(-1.0f)
                     .enchantment(2)
                     .build();
     public static final DeferredItem<Item> SHADOW_SWORD =
-            ItemMigrationAPI.toolItem("shadow_sword")
+            ItemAPI.toolItem("shadow_sword")
                     .type(ToolType.SWORD).durability(1771)
                     .attackDamage(11.0f).attackSpeed(-2.4f)
                     .enchantment(10)
                     .build();
     public static final DeferredItem<Item> TERRA_SWORD =
-            ItemMigrationAPI.toolItem("terra_sword")
+            ItemAPI.toolItem("terra_sword")
                     .type(ToolType.SWORD).durability(1561)
                     .attackDamage(8.0f).attackSpeed(-2.4f)
                     .build();
     public static final DeferredItem<Item> THERMAL_DAGGER =
-            ItemMigrationAPI.toolItem("thermal_dagger")
+            ItemAPI.toolItem("thermal_dagger")
                     .type(ToolType.SWORD).durability(1721)
                     .attackDamage(5.5f).attackSpeed(-2.3f)
                     .enchantment(2)
                     .build();
     public static final DeferredItem<Item> TIDE_SWORD =
-            ItemMigrationAPI.toolItem("tide_sword")
+            ItemAPI.toolItem("tide_sword")
                     .type(ToolType.SWORD).durability(1561)
                     .attackDamage(7.5f).attackSpeed(-2.8f)
                     .enchantment(11)
                     .build();
     public static final DeferredItem<Item> TITANIUM_SWORD =
-            ItemMigrationAPI.toolItem("titanium_sword")
+            ItemAPI.toolItem("titanium_sword")
                     .type(ToolType.SWORD).durability(1721)
                     .attackDamage(6.5f).attackSpeed(-2.4f)
                     .enchantment(17)
                     .build();
     public static final DeferredItem<Item> TRUE_DESERT_SWORD =
-            ItemMigrationAPI.toolItem("true_desert_sword")
+            ItemAPI.toolItem("true_desert_sword")
                     .type(ToolType.SWORD).durability(1561)
                     .attackDamage(11.0f).attackSpeed(-3.1f)
                     .enchantment(8)
                     .build();
     public static final DeferredItem<Item> TRUE_GRASS_SWORD =
-            ItemMigrationAPI.toolItem("true_grass_sword")
+            ItemAPI.toolItem("true_grass_sword")
                     .type(ToolType.SWORD).durability(1311)
                     .attackDamage(6.5f).attackSpeed(-2.5f)
                     .enchantment(16)
                     .build();
     public static final DeferredItem<Item> TRUE_MOLTENGOLD_SWORD =
-            ItemMigrationAPI.toolItem("true_moltengold_sword")
+            ItemAPI.toolItem("true_moltengold_sword")
                     .type(ToolType.SWORD).durability(1255)
                     .attackDamage(6.0f).attackSpeed(-2.2f)
                     .enchantment(23)
                     .build();
     public static final DeferredItem<Item> TRUE_TIDE_SWORD =
-            ItemMigrationAPI.toolItem("true_tide_sword")
+            ItemAPI.toolItem("true_tide_sword")
                     .type(ToolType.SWORD).durability(1561)
                     .attackDamage(8.0f).attackSpeed(-2.8f)
                     .enchantment(11)
                     .build();
     public static final DeferredItem<Item> TRUEST_MOLTENGOLD_SWORD =
-            ItemMigrationAPI.toolItem("truest_moltengold_sword")
+            ItemAPI.toolItem("truest_moltengold_sword")
                     .type(ToolType.SWORD).durability(1255)
                     .attackDamage(6.0f).attackSpeed(-2.15f)
                     .enchantment(23)
                     .build();
     public static final DeferredItem<Item> WHITE_SWORD =
-            ItemMigrationAPI.toolItem("white_sword")
+            ItemAPI.toolItem("white_sword")
                     .type(ToolType.SWORD).durability(1771)
                     .attackDamage(8.0f).attackSpeed(-2.4f)
                     .enchantment(10)
@@ -705,49 +705,49 @@ public class PDItems {
     // ==================== 镐类/锤类工具 ====================
 
     public static final DeferredItem<Item> COPPER_PICKAXE =
-            ItemMigrationAPI.toolItem("copper_pickaxe")
+            ItemAPI.toolItem("copper_pickaxe")
                     .type(ToolType.PICKAXE).durability(131).miningSpeed(4.0f)
                     .attackDamage(2.0f).attackSpeed(-2.8f)
                     .incorrectTag("minecraft:incorrect_for_stone_tool")
                     .repairWith(new ItemStack(Items.COBBLESTONE))
                     .build();
     public static final DeferredItem<Item> DYEDREAM_HAMMER =
-            ItemMigrationAPI.toolItem("dyedream_hammer")
+            ItemAPI.toolItem("dyedream_hammer")
                     .type(ToolType.HAMMER).durability(2031).miningSpeed(9.0f)
                     .attackDamage(5.0f).attackSpeed(-2.8f)
                     .incorrectTag("minecraft:incorrect_for_netherite_tool")
                     .repairWith(new ItemStack(Items.NETHERITE_INGOT))
                     .build();
     public static final DeferredItem<Item> DYEDREAM_PICKAXE =
-            ItemMigrationAPI.toolItem("dyedream_pickaxe")
+            ItemAPI.toolItem("dyedream_pickaxe")
                     .type(ToolType.PICKAXE).durability(2031).miningSpeed(9.0f)
                     .attackDamage(5.0f).attackSpeed(-2.8f)
                     .incorrectTag("minecraft:incorrect_for_netherite_tool")
                     .repairWith(new ItemStack(Items.NETHERITE_INGOT))
                     .build();
     public static final DeferredItem<Item> MELTDREAM_PICKAXE =
-            ItemMigrationAPI.toolItem("meltdream_pickaxe")
+            ItemAPI.toolItem("meltdream_pickaxe")
                     .type(ToolType.PICKAXE).durability(250).miningSpeed(6.0f)
                     .attackDamage(3.0f).attackSpeed(-2.8f)
                     .incorrectTag("minecraft:incorrect_for_iron_tool")
                     .repairWith(new ItemStack(Items.IRON_INGOT))
                     .build();
     public static final DeferredItem<Item> MOLTENGOLD_PICKAXE =
-            ItemMigrationAPI.toolItem("moltengold_pickaxe")
+            ItemAPI.toolItem("moltengold_pickaxe")
                     .type(ToolType.PICKAXE).durability(131).miningSpeed(4.0f)
                     .attackDamage(2.0f).attackSpeed(-2.7f)
                     .incorrectTag("minecraft:incorrect_for_stone_tool")
                     .repairWith(new ItemStack(Items.COBBLESTONE))
                     .build();
     public static final DeferredItem<Item> SHADOW_EROSION_PICKAXE =
-            ItemMigrationAPI.toolItem("shadow_erosion_pickaxe")
+            ItemAPI.toolItem("shadow_erosion_pickaxe")
                     .type(ToolType.PICKAXE).durability(2031).miningSpeed(9.0f)
                     .attackDamage(5.0f).attackSpeed(-2.8f)
                     .incorrectTag("minecraft:incorrect_for_netherite_tool")
                     .repairWith(new ItemStack(Items.NETHERITE_INGOT))
                     .build();
     public static final DeferredItem<Item> TITANIUM_PICKAXE =
-            ItemMigrationAPI.toolItem("titanium_pickaxe")
+            ItemAPI.toolItem("titanium_pickaxe")
                     .type(ToolType.PICKAXE).durability(2031).miningSpeed(9.0f)
                     .attackDamage(5.0f).attackSpeed(-2.8f)
                     .incorrectTag("minecraft:incorrect_for_netherite_tool")
@@ -760,7 +760,7 @@ public class PDItems {
      * 原模组：耐久 1721，速度 9.0，伤害+9，攻速 -3.0
      */
     public static final DeferredItem<Item> TITANIUM_AXE =
-            ItemMigrationAPI.toolItem("titanium_axe")
+            ItemAPI.toolItem("titanium_axe")
                     .type(ToolType.AXE)
                     .durability(1721).miningSpeed(9.0f)
                     .attackDamage(9.0f).attackSpeed(-3.0f)
@@ -775,7 +775,7 @@ public class PDItems {
      * 原模组：耐久 1721，速度 9.0，伤害+5.5，攻速 -3.0
      */
     public static final DeferredItem<Item> TITANIUM_SHOVEL =
-            ItemMigrationAPI.toolItem("titanium_shovel")
+            ItemAPI.toolItem("titanium_shovel")
                     .type(ToolType.SHOVEL)
                     .durability(1721).miningSpeed(9.0f)
                     .attackDamage(5.5f).attackSpeed(-3.0f)
@@ -790,7 +790,7 @@ public class PDItems {
      * 原模组：耐久 1721，速度 9.0，伤害+0.5，攻速 0.0
      */
     public static final DeferredItem<Item> TITANIUM_HOE =
-            ItemMigrationAPI.toolItem("titanium_hoe")
+            ItemAPI.toolItem("titanium_hoe")
                     .type(ToolType.HOE)
                     .durability(1721).miningSpeed(9.0f)
                     .attackDamage(0.5f).attackSpeed(0.0f)
@@ -800,7 +800,7 @@ public class PDItems {
                     .build();
 
     public static final DeferredItem<Item> TRUE_MOLTENGOLD_PICKAXE =
-            ItemMigrationAPI.toolItem("true_moltengold_pickaxe")
+            ItemAPI.toolItem("true_moltengold_pickaxe")
                     .type(ToolType.PICKAXE).durability(131).miningSpeed(4.0f)
                     .attackDamage(2.0f).attackSpeed(-2.6f)
                     .incorrectTag("minecraft:incorrect_for_stone_tool")
@@ -907,27 +907,27 @@ public class PDItems {
     // ==================== 需要自定义类的物品（tooltip/交互） ====================
 
     public static final DeferredItem<Item> AMBER_CANDY =
-            ItemMigrationAPI.foodItem("amber_candy")
+            ItemAPI.foodItem("amber_candy")
                     .nutrition(0).saturationModifier(0f)
                     .build();
     public static final DeferredItem<Item> BLUE_DEW = ITEMS.register("blue_dew",
             () -> new BlueDewItem(new Item.Properties()));
     public static final DeferredItem<Item> BREAD_SLICE =
-            ItemMigrationAPI.foodItem("bread_slice")
+            ItemAPI.foodItem("bread_slice")
                     .nutrition(0).saturationModifier(0f)
                     .build();
     public static final DeferredItem<Item> BUBBLE_TEA = ITEMS.register("bubble_tea",
             () -> new BubbleTeaItem(new Item.Properties()));
     public static final DeferredItem<Item> CAKE_BASE =
-            ItemMigrationAPI.foodItem("cake_base")
+            ItemAPI.foodItem("cake_base")
                     .nutrition(0).saturationModifier(0f)
                     .build();
     public static final DeferredItem<Item> CRADLE_IN_ONES_ARMS = ITEMS.register("cradle_in_ones_arms",
             () -> new CradleInOnesArmsItem(new Item.Properties()));
     public static final DeferredItem<Item> DREAM_COIN_0 =
-            ItemMigrationAPI.simpleItem("dream_coin_0").build();
+            ItemAPI.simpleItem("dream_coin_0").build();
     public static final DeferredItem<Item> DREAM_COIN_1 =
-            ItemMigrationAPI.simpleItem("dream_coin_1").build();
+            ItemAPI.simpleItem("dream_coin_1").build();
     public static final DeferredItem<DreamFertilizerItem> DREAM_FERTILIZER = ITEMS.register("dream_fertilizer",
             () -> new DreamFertilizerItem(new Item.Properties(), PDParticles.DREAMFERTILITER_PARTICLE.holder()));
     public static final DeferredItem<Item> DYEDREAM_FRUIT = ITEMS.register("dyedream_fruit",
@@ -940,13 +940,13 @@ public class PDItems {
                             .effect(() -> new MobEffectInstance(PDEffects.DYEDREAM_PERFUME_BUFF.holder(), 1200, 0), 1.0f)
                             .build())));
     public static final DeferredItem<Item> ELIXIR_BOTTLE =
-            ItemMigrationAPI.simpleItem("elixir_bottle").build();
+            ItemAPI.simpleItem("elixir_bottle").build();
     public static final DeferredItem<Item> FIG =
-            ItemMigrationAPI.foodItem("fig")
+            ItemAPI.foodItem("fig")
                     .nutrition(0).saturationModifier(0f)
                     .build();
     public static final DeferredItem<Item> GLASSJAR =
-            ItemMigrationAPI.simpleItem("glassjar").build();
+            ItemAPI.simpleItem("glassjar").build();
     public static final DeferredItem<Item> GUIDING_DRUG = ITEMS.register("guiding_drug",
             () -> new GuidingDrugItem(new Item.Properties()));
     public static final DeferredItem<Item> HEART_CHOCOLATE_0 = ITEMS.register("heart_chocolate_0",
@@ -1066,7 +1066,7 @@ public class PDItems {
      * "double scoop" by A L E X
      */
     public static final DeferredItem<PastedreamMusicDiscItem> SWEETDREAM_DISC =
-            ItemMigrationAPI.registerCustom("sweetdream_disc",
+            ItemAPI.registerCustom("sweetdream_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "sweetdream_disc", "sweetdream",
                             "double scoop", "A L E X", "double scoop"));
 
@@ -1075,7 +1075,7 @@ public class PDItems {
      * PasterDream - 落雪之梦，时长 2520 tick（约 126 秒）
      */
     public static final DeferredItem<PastedreamMusicDiscItem> SNOWFALLDREAM_DISC =
-            ItemMigrationAPI.registerCustom("snowfalldream_disc",
+            ItemAPI.registerCustom("snowfalldream_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "snowfalldream_disc", "snowfalldream"));
 
     /**
@@ -1083,7 +1083,7 @@ public class PDItems {
      * PasterDream - 亚伦柯斯之触，时长 2980 tick（约 149 秒）
      */
     public static final DeferredItem<PastedreamMusicDiscItem> AARONCOS_DISC =
-            ItemMigrationAPI.registerCustom("aaroncos_disc",
+            ItemAPI.registerCustom("aaroncos_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "aaroncos_disc", "aaroncos"));
 
     /**
@@ -1091,7 +1091,7 @@ public class PDItems {
      * PasterDream - DyeDream World，使用 dyedream_world.ogg，时长 120 秒，纹理 music_disc_sweetdream
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DYEDREAM_WORLD_DISC =
-            ItemMigrationAPI.registerCustom("dyedream_world_disc",
+            ItemAPI.registerCustom("dyedream_world_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dyedream_world_disc", "dyedream_world"));
 
     /**
@@ -1099,7 +1099,7 @@ public class PDItems {
      * PasterDream - 风之旅途，时长 4240 tick（约 212 秒）
      */
     public static final DeferredItem<PastedreamMusicDiscItem> WIND_JOURNEY_DISC =
-            ItemMigrationAPI.registerCustom("wind_journey_disc",
+            ItemAPI.registerCustom("wind_journey_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "wind_journey_disc", "wind_journey"));
 
     /**
@@ -1107,7 +1107,7 @@ public class PDItems {
      * PasterDream - 风之旅途·其二，使用 wind_journey1.ogg，时长 130 秒
      */
     public static final DeferredItem<PastedreamMusicDiscItem> WIND_JOURNEY_1_DISC =
-            ItemMigrationAPI.registerCustom("wind_journey_1_disc",
+            ItemAPI.registerCustom("wind_journey_1_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "wind_journey_1_disc", "wind_journey1"));
 
     // ==================== 染梦群系背景音乐唱片（使用 API registerCustom 注册） ====================
@@ -1117,7 +1117,7 @@ public class PDItems {
      * "Nocturne in Paris" by Tony Anderson
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_MEADOW_DISC =
-            ItemMigrationAPI.registerCustom("dream_meadow_disc",
+            ItemAPI.registerCustom("dream_meadow_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_meadow_disc", "dream_meadow",
                             "Nocturne in Paris", "Tony Anderson", "Immanuel"));
 
@@ -1126,7 +1126,7 @@ public class PDItems {
      * "Pop In" by [.que]
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_HEATH_DISC =
-            ItemMigrationAPI.registerCustom("dream_heath_disc",
+            ItemAPI.registerCustom("dream_heath_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_heath_disc", "dream_heath",
                             "Pop In", "[.que]", "Another Sky"));
 
@@ -1135,7 +1135,7 @@ public class PDItems {
      * "Forest" by [.que]
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_TAIGA_DISC =
-            ItemMigrationAPI.registerCustom("dream_taiga_disc",
+            ItemAPI.registerCustom("dream_taiga_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_taiga_disc", "dream_taiga",
                             "Forest", "[.que]", "Wonderland"));
 
@@ -1144,13 +1144,13 @@ public class PDItems {
      * "The Shore" by Mango
      */
     public static final DeferredItem<PastedreamMusicDiscItem> DREAM_DELTA_DISC =
-            ItemMigrationAPI.registerCustom("dream_delta_disc",
+            ItemAPI.registerCustom("dream_delta_disc",
                     () -> new PastedreamMusicDiscItem(PasterDreamMod.MOD_ID, "dream_delta_disc", "dream_delta",
                             "The Shore", "Mango", "Citylanes Airplanes"));
 
     // 标记唱片迁移状态
     static {
-        ItemMigrationAPI.markMigrated(MigrationCategory.MUSIC_DISC,
+        ItemAPI.markMigrated(MigrationCategory.MUSIC_DISC,
                 "sweetdream_disc", "snowfalldream_disc", "aaroncos_disc", "dyedream_world_disc",
                 "wind_journey_disc", "wind_journey_1_disc",
                 "dream_meadow_disc", "dream_heath_disc", "dream_taiga_disc", "dream_delta_disc");
@@ -1491,8 +1491,8 @@ public class PDItems {
                 blockItemCount++;
             }
         }
-        PasterDreamMod.LOGGER.info("[PDItems] ✅ 物品注册统计：共 {} 个物品，其中约 {} 个 BlockItem", 
+        PasterDreamMod.LOGGER.debug("[PDItems] ✅ 物品注册统计：共 {} 个物品，其中约 {} 个 BlockItem", 
             itemCount, blockItemCount);
-        PasterDreamMod.LOGGER.info("[PDItems]     DeferredRegister.Items 注册表已就绪");
+        PasterDreamMod.LOGGER.debug("[PDItems]     DeferredRegister.Items 注册表已就绪");
     }
 }

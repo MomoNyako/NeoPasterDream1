@@ -32,7 +32,7 @@ public class PDBlockModelProvider extends BlockStateProvider {
             String model = config.getModel();
             if (model == null) continue;
 
-            Block block = BlockAPI.getBlock(name);
+            Block block = BlockAPI.getBlock(name).orElse(null);
             if (block == null) continue;
 
             switch (model) {

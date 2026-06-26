@@ -59,7 +59,7 @@ public class CurioClientHandler implements CurioAPI.CurioClientBridge {
 
             if (item != Items.AIR) {
                 CuriosRendererRegistry.register(item, (Supplier<ICurioRenderer>) entry.getValue());
-                PasterDreamMod.LOGGER.info(
+                PasterDreamMod.LOGGER.debug(
                         "[CurioClient] 已注册饰品渲染器: {}",
                         fullName);
             } else {
@@ -72,7 +72,7 @@ public class CurioClientHandler implements CurioAPI.CurioClientBridge {
         // 2. 遍历所有配置了渲染的饰品并输出日志
         for (var registration : CurioAPI.getRegisteredCurios()) {
             if (!"none".equals(registration.renderType())) {
-                PasterDreamMod.LOGGER.info(
+                PasterDreamMod.LOGGER.debug(
                         "[CurioClient] 饰品 {} 配置了渲染类型: {}",
                         registration.fullName(),
                         registration.renderType());

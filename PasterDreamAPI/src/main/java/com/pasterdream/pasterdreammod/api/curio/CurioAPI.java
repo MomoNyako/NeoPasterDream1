@@ -64,6 +64,19 @@ public final class CurioAPI {
     /** 已注册的饰品列表（按注册顺序） */
     static final List<CurioRegistration> REGISTERED_CURIOS = new ArrayList<>();
 
+    /**
+     * 重置所有静态缓存，供测试使用。
+     * <p>
+     * 清空渲染器注册信息、渲染器供应商以及已注册饰品列表，使每次测试都在干净的缓存状态下运行。
+     * 注意：此方法不会取消 DeferredRegister 中的已注册饰品物品，仅清除 API 层面的缓存数据。
+     */
+    public static void resetForTesting() {
+        RENDERER_REGISTRY.clear();
+        RENDERER_SUPPLIERS.clear();
+        REGISTERED_CURIOS.clear();
+        clientBridge = null;
+    }
+
     private CurioAPI() {}
 
     /**

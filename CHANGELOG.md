@@ -1,3 +1,89 @@
+# v9.1 — README 遗留修复项编译问题闭环
+
+> **修复日期**：2026-06-26\
+> **执行人**：AI Assistant\
+> **对照文档**：[`README.md`](README.md)、[`CHANGELOG.md`](CHANGELOG.md) v9
+
+## 修复清单
+
+| 优先级 | 问题                                                                 | 修复内容                                                                                                                                           |  状态 |
+| :-: | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | :-: |
+|  P0 | `PDBlockEntities` 使用 `BlockEntityAPI` 后类型不匹配                       | 为 `BlockEntityAPI.createBlockEntity(...)` 添加显式类型参数，并将 `validBlock(PDBlocks.XXX)` 改为 `validBlock(PDBlocks.XXX.get())`                           | 已修复 |
+|  P0 | `PDMenus` 使用 `MenuAPI` 后泛型推断失败                                     | 为 `MenuAPI.createMenu(...)` 添加显式类型参数，确保 `build()` 返回正确的 `MenuType<T>`                                                                          | 已修复 |
+|  P0 | `DecorationRegistry` 引用 test sourceSet 的 `DecorationJsonGenerator` | 移除 `DecorationRegistry` 中的 `generateAllJson()` / `generateBiomeModifierJson()` 委托方法，并删除 `ModDecorations.generateJson()`，彻底切断 main → test 的编译依赖 | 已修复 |
+
+## 关键代码变更
+
+- **`PDBlockEntities.java`**：8 个方块实体注册全部使用 `BlockEntityAPI.<具体实体类型>createBlockEntity(...)`，并将 `validBlock` 参数由 `DeferredBlock` 改为 `.get()` 后的 `Block`。
+- **`PDMenus.java`**：5 个菜单类型注册全部使用 `MenuAPI.<具体菜单类型>createMenu(...)`，解决 `IContainerFactory` 方法引用导致泛型 `T` 被推断为 `AbstractContainerMenu` 的问题。
+- **`DecorationRegistry.java`**：删除对 `DecorationJsonGenerator` 的 `@see` Javadoc 引用与两个委托生成方法，仅保留装饰物注册管理职责。
+- **`ModDecorations.java`**：删除仅供开发阶段使用的 `generateJson()` 方法，避免主源码集依赖 test sourceSet。
+
+## 编译验证
+
+```text
+BUILD SUCCESSFUL in 31s
+4 actionable tasks: 1 executed, 3 up-to-date
+```
+
+```text
+BUILD SUCCESSFUL in 19s
+8 actionable tasks: 2 executed, 6 up-to-date
+```
+
+`compileJava` 与 `compileTestJava` 均通过，无新增编译错误，仅有既有 Curio/EntityAPI 的 deprecation/unchecked 警告。
+
+***
+
+# v9 — README 遗留修复项全量闭环
+
+> **修复日期**：2026-06-26\
+> **执行人**：AI Assistant\
+> **对照文档**：[`README.md`](README.md)、[`API_REVIEW_REPORT.md`](API_REVIEW_REPORT.md)
+
+## 修复清单
+
+| 优先级 | 问题                    | 修复内容                                                                                                                                                                                                             |  状态 |
+| :-: | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-: |
+|  P1 | 日志过多                  | 将 PasterDreamAPI 与 PasterDream 中高频注册流程日志从 `INFO` 统一降级为 `DEBUG`；保留启动 banner、命令调试、资源审计等关键日志为 `INFO`                                                                                                                | 已修复 |
+|  P2 | `CompatLayer` 仍保留在源码  | 删除已标记 `@Deprecated(forRemoval=true)` 的 `api/compat/` 包（含 `CompatLayer.java`、`package-info.java`），并清理主模块残留引用                                                                                                      | 已修复 |
+|  P2 | 静态缓存无清理               | 为 BlockAPI、EntityAPI、ParticleAPI、MobEffectAPI、RuinAPI、DimensionAPI、CurioAPI、ItemAPI、ApiSoundRegistry、StructureTerrainNegotiator 新增 `resetForTesting()`，支持测试隔离                                                    | 已修复 |
+|  P2 | 查询返回 null             | BlockAPI、EntityAPI、ParticleAPI、MobEffectAPI、RuinAPI、DimensionAPI、ApiSoundRegistry 的公开查询方法统一改为返回 `Optional<T>`；必要时对 `@Nullable` 方法显式标注并更新调用方                                                                      | 已修复 |
+|  P2 | `ItemMigrationAPI` 命名 | 将 `api/itemmigration/` 重命名为 `api/item/`，`ItemMigrationAPI` 重命名为 `ItemAPI`，`MigrationManager` 重命名为 `ItemManager`；同步更新 PasterDreamAPI、PDItems 等所有引用                                                                | 已修复 |
+|  P3 | `example` / `gen` 包打包 | 将 `block/example/`、`dimension/gen/`、`dimension/example/`、`particle/gen/`、`ruin/gen/`、`entity/gen/`、`item/example/`、`item/gen/` 迁移到 `src/test/java`；调整 `PasterDream/build.gradle` 中相关 `JavaExec` 任务 classpath 与依赖 | 已修复 |
+|  P3 | API 覆盖不完整             | 新增 `BlockEntityAPI` / `BlockEntityBuilder`、`MenuAPI` / `MenuBuilder`、`FluidAPI` / `FluidBuilder` 三个 facade，并在 `PasterDreamAPI.registerAll(...)` 中统一注册                                                            | 已修复 |
+
+## 关键代码变更
+
+- **日志降噪**：`EntitySkillManager.java`、`StructureTerrainNegotiator.java`、`LootTableGenerator.java`、`MigrationManager.java`（现 `ItemManager.java`）、`ClientSetup.java`、`PDClientItemExtensions.java`、`CurioClientHandler.java`、`PDSounds.java`、`PDRuinsRegistration.java`、`PDParticles.java`、`PDItems.java`、`DecorationRegistry.java`、`DecorationJsonGenerator.java`、`PDDyedreamBiomeModifier.java` 等文件中的注册流程日志降级为 `DEBUG`。
+- **`CompatLayer`** **移除**：删除 `PasterDreamAPI/.../api/compat/` 目录；确认 `PasterDreamMod.java` 已无相关 import 与调用。
+- **`resetForTesting()`**：各 API facade 新增静态 `resetForTesting()` 方法，清空内部 `BLOCK_CONFIGS`、`BLOCK_SUPPLIERS`、`ENTITY_CACHE`、`REGISTERED_PARTICLES`、`REGISTERED_EFFECTS`、`REGISTERED_RUINS`、`REGISTERED_DIMENSIONS`、`RENDERER_REGISTRY`、`DIMENSION_MUSIC_CACHE` 等静态缓存。
+- **`Optional<T>`** **查询**：`getBlock`、`getEntityType`、`getEntityResult`、`getSpawnEggColors`、`getEntitySkill`、`getParticle`、`getParticleType`、`getParticleSupplier`、`getEffect`、`getEffectType`、`getEffectSupplier`、`getPasterDreamEffect`、`getRuin`、`getRegisteredDimension`、`getMusicEvent`、`getDimensionMusic` 等方法改为返回 `Optional`；调用方已适配。
+- **`ItemAPI`** **重命名**：
+  - 包路径 `api/itemmigration/` → `api/item/`
+  - `ItemMigrationAPI` → `ItemAPI`
+  - `MigrationManager` → `ItemManager`
+  - `ItemMigrationExample` → `ItemAPIExample`
+  - `RecipeGenerationDemo` → `RecipeAPIDemo`
+  - 移除 `ItemAPI` 中对 test sourceSet 生成器类的 `Class` 暴露方法，避免 main 依赖 test。
+- **`example`** **/** **`gen`** **迁移**：演示与生成器代码统一迁移到 `src/test/java`；`PasterDream/build.gradle` 为 `sourceSets.test` 添加 modding 依赖，并将相关 `JavaExec` 任务 classpath 切到 `sourceSets.test.runtimeClasspath`。
+- **新 API Facade**：
+  - `BlockEntityAPI.java` / `BlockEntityBuilder.java`
+  - `MenuAPI.java` / `MenuBuilder.java`
+  - `FluidAPI.java` / `FluidBuilder.java`
+  - 三类 DeferredRegister 已接入 `PasterDreamAPI.registerAll(IEventBus)`。
+
+## 编译验证
+
+```text
+BUILD SUCCESSFUL in 20s
+8 actionable tasks: 8 up-to-date
+```
+
+无新增编译错误，仅有既有 Curio/EntityAPI 的 deprecation/unchecked 警告。
+
+***
+
 # v8 — MomoNyako 负责的 BlockAPI 与日志优化修复
 
 > **修复日期**：2026-06-21\
@@ -6,10 +92,10 @@
 
 ## 修复清单
 
-| 优先级 | 问题                                              | 修复内容                                                                                                                                                |  状态 |
-| :-: | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | :-: |
-|  P1 | `BatchBlockBuilder` / `VariantSetBuilder` 未写入 `BLOCK_SUPPLIERS` | 在 `build()` 方法中注册方块后补充 `BlockAPI.putBlock()` 调用，确保 `BlockAPI.getBlock()` 可查询批量/变体注册方块 | 已修复 |
-|  P1 | `BlockLootAPI` INFO 级别日志泛滥 | 将基础方法（`selfDrop`, `oreDrop`, `silkTouchDrop`, `customDrop`, `multiDrop`）的详细日志从 `info` 降为 `debug`；批量方法保留一条 `info` 摘要日志；移除冗余的 `===== 方法名 =====` 和 `✅ 完成` 格式日志 | 已修复 |
+| 优先级 | 问题                                                              | 修复内容                                                                                                                                                        |  状态 |
+| :-: | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | :-: |
+|  P1 | `BatchBlockBuilder` / `VariantSetBuilder` 未写入 `BLOCK_SUPPLIERS` | 在 `build()` 方法中注册方块后补充 `BlockAPI.putBlock()` 调用，确保 `BlockAPI.getBlock()` 可查询批量/变体注册方块                                                                       | 已修复 |
+|  P1 | `BlockLootAPI` INFO 级别日志泛滥                                      | 将基础方法（`selfDrop`, `oreDrop`, `silkTouchDrop`, `customDrop`, `multiDrop`）的详细日志从 `info` 降为 `debug`；批量方法保留一条 `info` 摘要日志；移除冗余的 `===== 方法名 =====` 和 `✅ 完成` 格式日志 | 已修复 |
 
 ## 关键代码变更
 
@@ -44,7 +130,7 @@ BUILD SUCCESSFUL in 12s
 |  P1 | `ModMusicManager` 单例模式限制测试性                     | 移除 `instance` 字段与 `getInstance()`，改为通过构造函数依赖注入                                                                                                      | 已修复 |
 |  P1 | `ModMusicManager` 硬编码依赖创建                       | 构造函数接收所有子系统实例，由 `MusicSystemFactory` 统一组装                                                                                                           | 已修复 |
 |  P2 | 静态 API 委托混乱                                     | 将 `registerBiomeMusic` / `registerCustomDimension` / `isCustomDimension` 改为实例方法，移除静态初始化块，新增 `initializeDefaultBiomeMusic()`                         | 已修复 |
-|  P2 | `MinecraftMixin` 依赖音频管理器静态方法                    | 删除 `ModMusicManager` 中冗余的 `isCustomDimension()` 委托方法；Mixin 改为调用 `PDClientEvents.getBiomeMusicRegistry().isCustomDimension()`，保留多自定义维度扩展能力                       | 已修复 |
+|  P2 | `MinecraftMixin` 依赖音频管理器静态方法                    | 删除 `ModMusicManager` 中冗余的 `isCustomDimension()` 委托方法；Mixin 改为调用 `PDClientEvents.getBiomeMusicRegistry().isCustomDimension()`，保留多自定义维度扩展能力           | 已修复 |
 |  P1 | 粒子新旧混用                                          | 将 `PDParticles.java` 中剩余 6 个旧式 `DeferredHolder` 粒子注册迁移为 `ParticleAPI.createParticle(...).build()`，删除冗余的 `initCache()`，同步更新 `ClientSetup` 及主模块中所有引用点 | 已修复 |
 |  P2 | `ApiSoundRegistry` 硬编码音乐文件                      | 在 `registerDimensionMusic()` 中通过类路径检查 `assets/pasterdream/sounds/music/{name}.ogg` 是否存在；缺失时输出 `WARN` 并跳过注册，避免运行时静默失败                                | 已修复 |
 |  P2 | `ApiCodeGenConfig.setDefaultBasePath(null)` 无校验 | 在方法入口添加 `Objects.requireNonNull(path, "ApiCodeGenConfig: defaultBasePath cannot be null")`                                                          | 已修复 |

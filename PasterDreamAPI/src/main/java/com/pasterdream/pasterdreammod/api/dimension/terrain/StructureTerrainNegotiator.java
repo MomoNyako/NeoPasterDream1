@@ -30,7 +30,7 @@ public class StructureTerrainNegotiator {
     private final Map<String, String> structureDimensions = new ConcurrentHashMap<>();
 
     private StructureTerrainNegotiator() {
-        PasterDreamAPI.LOGGER.info("[TerrainNegotiator] 🏗️ 地形协商器初始化完成");
+        PasterDreamAPI.LOGGER.debug("[TerrainNegotiator] 🏗️ 地形协商器初始化完成");
     }
 
     /**
@@ -59,7 +59,7 @@ public class StructureTerrainNegotiator {
     public void registerLargeStructure(String structureName, String dimensionId, TerrainRequirements requirements) {
         largeStructures.put(structureName, requirements);
         structureDimensions.put(structureName, dimensionId);
-        PasterDreamAPI.LOGGER.info("[TerrainNegotiator] 📝 注册大型结构: {} (维度: {}) | 需求: {}",
+        PasterDreamAPI.LOGGER.debug("[TerrainNegotiator] 📝 注册大型结构: {} (维度: {}) | 需求: {}",
                 structureName, dimensionId, requirements);
     }
 
@@ -70,7 +70,7 @@ public class StructureTerrainNegotiator {
      */
     public void enableDimensionSupport(String dimensionId) {
         enabledDimensions.add(dimensionId);
-        PasterDreamAPI.LOGGER.info("[TerrainNegotiator] 🌍 启用维度的大型结构支持: {}", dimensionId);
+        PasterDreamAPI.LOGGER.debug("[TerrainNegotiator] 🌍 启用维度的大型结构支持: {}", dimensionId);
     }
 
     // ======================== 查询接口 ========================
@@ -235,7 +235,7 @@ public class StructureTerrainNegotiator {
         if (hasFailing) {
             PasterDreamAPI.LOGGER.error("[TerrainNegotiator] {}", sb);
         } else {
-            PasterDreamAPI.LOGGER.info("[TerrainNegotiator] {}", sb);
+            PasterDreamAPI.LOGGER.debug("[TerrainNegotiator] {}", sb);
         }
     }
 
@@ -282,6 +282,21 @@ public class StructureTerrainNegotiator {
         enabledDimensions.clear();
         placementRecords.clear();
         structureDimensions.clear();
-        PasterDreamAPI.LOGGER.info("[TerrainNegotiator] 🔄 已重置所有统计数据");
+        PasterDreamAPI.LOGGER.debug("[TerrainNegotiator] 🔄 已重置所有统计数据");
+    }
+
+    /**
+     * 重置地形协商器单例及其所有缓存，供测试使用。
+     * <p>
+     * 清空已注册的大型结构、启用维度、放置记录等数据，并将单例实例置为空，
+     * 使每次测试都能从全新的协商器状态开始。
+     * 注意：此方法不会撤销 DeferredRegister 中的结构注册，仅清除协商器内部的缓存数据。
+     */
+    public static void resetForTesting() {
+        StructureTerrainNegotiator negotiator = instance;
+        if (negotiator != null) {
+            negotiator.reset();
+        }
+        instance = null;
     }
 }

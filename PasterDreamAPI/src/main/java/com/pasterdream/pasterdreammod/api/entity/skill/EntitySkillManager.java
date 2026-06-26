@@ -98,7 +98,7 @@ public class EntitySkillManager {
     public EntitySkillManager registerSkill(EntitySkill skill) {
         skills.put(skill.name(), skill);
         cooldowns.put(skill.name(), 0);
-        PasterDreamAPI.LOGGER.info("[EntitySkillManager] 注册技能: {} → {} | 技能总数: {}", entity, skill.name(), skills.size());
+        PasterDreamAPI.LOGGER.debug("[EntitySkillManager] 注册技能: {} → {} | 技能总数: {}", entity, skill.name(), skills.size());
         return this;
     }
 
@@ -112,7 +112,7 @@ public class EntitySkillManager {
         for (EntitySkill skill : skillArray) {
             registerSkill(skill);
         }
-        PasterDreamAPI.LOGGER.info("[EntitySkillManager] 批量注册技能完成: {} 个技能已注册", skillArray.length);
+        PasterDreamAPI.LOGGER.debug("[EntitySkillManager] 批量注册技能完成: {} 个技能已注册", skillArray.length);
         return this;
     }
 
@@ -277,7 +277,7 @@ public class EntitySkillManager {
     protected void spawnSkillParticles(ServerLevel level, EntitySkill skill) {
         if (skill.particleName() == null) return;
 
-        ParticleType<?> particleType = ParticleAPI.getParticleType(skill.particleName());
+        ParticleType<?> particleType = ParticleAPI.getParticleType(skill.particleName()).orElse(null);
         if (particleType == null) {
             PasterDreamAPI.LOGGER.warn("[EntitySkillManager] 粒子 [{}] 未找到，跳过粒子生成", skill.particleName());
             return;

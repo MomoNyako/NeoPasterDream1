@@ -15,13 +15,11 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.network.chat.Component;
 import java.util.List;
-import java.util.UUID;
 import net.minecraft.resources.ResourceLocation;
 
 /**
  * Red Dew2 Ring Item (Curio Item)
  */
-@SuppressWarnings("removal")
 public class RedDew2RingItem extends Item implements ICurioItem {
 
     public RedDew2RingItem() {
@@ -46,7 +44,7 @@ public class RedDew2RingItem extends Item implements ICurioItem {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
+    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
         Multimap<Holder<Attribute>, AttributeModifier> attributeModifiers = HashMultimap.create();
         attributeModifiers.put(Attributes.MAX_HEALTH, new AttributeModifier(ResourceLocation.fromNamespaceAndPath("pasterdream", "health"), 0.5, AttributeModifier.Operation.ADD_VALUE));
         return attributeModifiers;

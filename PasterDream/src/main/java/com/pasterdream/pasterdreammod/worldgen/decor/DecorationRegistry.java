@@ -25,11 +25,9 @@ import java.util.Map;
  *   <li>使用 DeferredRegister 注册 {@link GenericDecorationFeature} 到特征注册表</li>
  *   <li>管理所有已注册的装饰物条目列表</li>
  *   <li>提供 register() 方法供 {@link DecorationBuilder} 调用</li>
- *   <li>JSON 数据文件生成委托给 {@link DecorationJsonGenerator}</li>
  * </ul>
  *
  * @see DecorationBuilder 装饰物构建器（入口 API）
- * @see DecorationJsonGenerator JSON 数据文件生成器
  */
 public class DecorationRegistry {
 
@@ -58,7 +56,7 @@ public class DecorationRegistry {
      */
     public static void registerCustomGenerator(String key, ICustomDecorationGenerator generator) {
         CUSTOM_GENERATORS.put(key, generator);
-        PasterDreamMod.LOGGER.info("[DecorationRegistry] 已注册自定义生成器: {}", key);
+        PasterDreamMod.LOGGER.debug("[DecorationRegistry] 已注册自定义生成器: {}", key);
     }
 
     /**
@@ -132,7 +130,7 @@ public class DecorationRegistry {
         );
         REGISTERED.add(entry);
 
-        PasterDreamMod.LOGGER.info("[DecorationRegistry] 已注册装饰物: {} (类型={}, 群系={}, 稀有度={})",
+        PasterDreamMod.LOGGER.debug("[DecorationRegistry] 已注册装饰物: {} (类型={}, 群系={}, 稀有度={})",
                 name, config.type(), targetBiome, rarity);
 
         return placedKey;
@@ -145,26 +143,6 @@ public class DecorationRegistry {
      */
     public static List<DecorationEntry> getAllDecorations() {
         return REGISTERED_VIEW;
-    }
-
-    /**
-     * 自动生成所有已注册装饰物的 JSON 数据文件
-     * <p>
-     * 委托给 {@link DecorationJsonGenerator#generateAllJson()} 执行。
-     * 保持此方法为过渡兼容，新代码应直接调用 {@code DecorationJsonGenerator.generateAllJson()}。
-     */
-    public static void generateAllJson() {
-        DecorationJsonGenerator.generateAllJson();
-    }
-
-    /**
-     * 自动生成所有已注册装饰物的 biome_modifier JSON 文件
-     * <p>
-     * 委托给 {@link DecorationJsonGenerator#generateBiomeModifierJson()} 执行。
-     * 保持此方法为过渡兼容，新代码应直接调用 {@code DecorationJsonGenerator.generateBiomeModifierJson()}。
-     */
-    public static void generateBiomeModifierJson() {
-        DecorationJsonGenerator.generateBiomeModifierJson();
     }
 
     /**

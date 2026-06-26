@@ -10,6 +10,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -41,11 +42,10 @@ import java.util.function.Supplier;
  *     .build();
  *
  * // ====== 在其他地方获取效果引用 ======
- * MobEffectResult result = MobEffectAPI.getEffect("dreamwish_buff");
- * if (result != null) {
+ * MobEffectAPI.getEffect("dreamwish_buff").ifPresent(result -> {
  *     MobEffect effect = result.effect();
  *     // 应用效果...
- * }
+ * });
  *
  * // ====== 获取所有已注册效果 ======
  * Map<String, MobEffectResult> all = MobEffectAPI.getRegisteredEffects();
@@ -71,6 +71,16 @@ public final class MobEffectAPI {
     /** 已注册的效果结果缓存 */
     private static final Map<String, MobEffectResult> REGISTERED_EFFECTS = new HashMap<>();
 
+    /**
+     * 重置所有静态缓存，供测试使用。
+     * <p>
+     * 清空已注册药水效果结果缓存，使每次测试都在干净的缓存状态下运行。
+     * 注意：此方法不会取消 DeferredRegister 中的已注册效果，仅清除 API 层面的缓存数据。
+     */
+    public static void resetForTesting() {
+        REGISTERED_EFFECTS.clear();
+    }
+
     private MobEffectAPI() {
         throw new UnsupportedOperationException("MobEffectAPI 是纯静态门面类，不可实例化");
     }
@@ -87,7 +97,7 @@ public final class MobEffectAPI {
      * @return {@link MobEffectBuilder} 实例
      */
     public static MobEffectBuilder createEffect(String effectName) {
-        PasterDreamAPI.LOGGER.info("[MobEffectAPI] 开始创建效果构建器: {}", effectName);
+        PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 开始创建效果构建器: {}", effectName);
         return new MobEffectBuilder(effectName);
     }
 
@@ -97,12 +107,12 @@ public final class MobEffectAPI {
      * 获取已注册的效果结果
      *
      * @param effectName 效果注册名称
-     * @return {@link MobEffectResult}，如果未找到返回 null
+     * @return 包含 {@link MobEffectResult} 的 {@link Optional}，如果未找到则返回空 Optional
      */
-    public static MobEffectResult getEffect(String effectName) {
+    public static Optional<MobEffectResult> getEffect(String effectName) {
         MobEffectResult result = REGISTERED_EFFECTS.get(effectName);
         PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 🔍 查询效果: {} → {}", effectName, result != null ? "已找到" : "未找到");
-        return result;
+        return Optional.ofNullable(result);
     }
 
     /**
@@ -111,29 +121,29 @@ public final class MobEffectAPI {
      * 便捷方法，直接返回 MobEffect 引用。
      *
      * @param effectName 效果注册名称
-     * @return {@link MobEffect}，如果未找到返回 null
+     * @return 包含 {@link MobEffect} 的 {@link Optional}，如果未找到则返回空 Optional
      */
-    public static MobEffect getEffectType(String effectName) {
+    public static Optional<MobEffect> getEffectType(String effectName) {
         MobEffectResult result = REGISTERED_EFFECTS.get(effectName);
         MobEffect effect = result != null ? result.effect() : null;
         PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 🔍 查询效果类型: {} → {}", effectName, effect != null ? effect : "null");
-        return effect;
+        return Optional.ofNullable(effect);
     }
 
     /**
      * 获取效果类型的 Supplier
      *
      * @param effectName 效果注册名称
-     * @return 效果类型的 Supplier，如果未找到返回 null
+     * @return 包含效果类型 Supplier 的 {@link Optional}，如果未找到则返回空 Optional
      */
-    public static Supplier<MobEffect> getEffectSupplier(String effectName) {
+    public static Optional<Supplier<MobEffect>> getEffectSupplier(String effectName) {
         MobEffectResult result = REGISTERED_EFFECTS.get(effectName);
         if (result != null) {
             PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 🔍 查询效果 Supplier: {}", effectName);
-            return result::effect;
+            return Optional.of(result::effect);
         }
         PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 🔍 查询效果 Supplier: {} → null（未找到）", effectName);
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -142,17 +152,17 @@ public final class MobEffectAPI {
      * 用于访问自定义效果配置（着色器、粒子、回调等）。
      *
      * @param effectName 效果注册名称
-     * @return {@link PasterDreamEffect}，如果未找到或不是自定义效果返回 null
+     * @return 包含 {@link PasterDreamEffect} 的 {@link Optional}，如果未找到或不是自定义效果则返回空 Optional
      */
-    public static PasterDreamEffect getPasterDreamEffect(String effectName) {
+    public static Optional<PasterDreamEffect> getPasterDreamEffect(String effectName) {
         MobEffectResult result = REGISTERED_EFFECTS.get(effectName);
         if (result != null) {
             PasterDreamEffect pde = result.asPasterDreamEffect();
             PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 🔍 查询 PasterDreamEffect: {} → {}", effectName, pde != null ? "是自定义效果" : "不是自定义效果");
-            return pde;
+            return Optional.ofNullable(pde);
         }
         PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 🔍 查询 PasterDreamEffect: {} → null（未找到）", effectName);
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -176,7 +186,7 @@ public final class MobEffectAPI {
     public static void cacheEffect(MobEffectResult result) {
         REGISTERED_EFFECTS.put(result.name(), result);
         int total = REGISTERED_EFFECTS.size();
-        PasterDreamAPI.LOGGER.info("[MobEffectAPI] 📦 已缓存效果: {} | 缓存总数: {} | holder={}",
+        PasterDreamAPI.LOGGER.debug("[MobEffectAPI] 📦 已缓存效果: {} | 缓存总数: {} | holder={}",
                 result.name(), total, result.holder());
     }
 }

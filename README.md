@@ -1,6 +1,6 @@
 # PasterDream — API 架构修复进度
 
-> 最后更新：2026-06-18（内容基于 [`API_REVIEW_REPORT.md`](API_REVIEW_REPORT.md) 全面重构审查结果合并整理）
+> 最后更新：2026-06-26（Task 8 全量修复完成，v9.1 已闭环 v9 迁移引入的编译错误，内容基于 [`API_REVIEW_REPORT.md`](API_REVIEW_REPORT.md) 全面重构审查结果合并整理）
 
 ## 目前已知问题
 
@@ -15,18 +15,17 @@
 | **P1** | `BatchBlockBuilder` / `VariantSetBuilder` 未写入 `BLOCK_SUPPLIERS` | 注册完成后调用 `BlockAPI.putBlock()`，确保 `BlockAPI.getBlock()` 可查询                   | 已修复  |
 | **P1** | `BlockLootAPI` INFO 级别日志泛滥                                      | 注册流程日志统一降为 `debug`，仅异常/摘要使用 `info`                                           | 已修复  |
 | **P1** | 缺少统一注册入口                                                        | 新增 `PasterDreamAPI.registerAll(modEventBus)`                                 | 已修复  |
-| **P1** | 日志过多                                                            | 全部降为 `debug`，仅保留启动 banner 为 `info`                                           | 计划中  |
+| **P1** | 日志过多                                                            | 全部降为 `debug`，仅保留启动 banner 为 `info`                                           | 已修复  |
 | **P1** | 粒子新旧混用                                                          | 迁移剩余旧式粒子到 ParticleAPI，统一 15 个粒子注册方式                                    | 已修复  |
 | **P2** | `ApiSoundRegistry` 硬编码音乐文件                                      | 启动期校验 `.ogg` 文件存在性，缺失时跳过注册并输出 WARN                                       | 已修复  |
 | **P2** | `ApiCodeGenConfig.setDefaultBasePath(null)` 无校验                 | 添加 `Objects.requireNonNull` 前置校验                                             | 已修复  |
-| **P2** | `CompatLayer` 仍保留在源码                                            | 删除已标记 `@Deprecated(forRemoval=true)` 的兼容层                                    | 未修复  |
-| **P2** | 静态缓存无清理                                                         | 新增 `resetForTesting()` 方法                                                    | 未进行  |
-| **P2** | 查询返回 null                                                       | 改为 `Optional` 或加 `@Nullable`                                                 | 未进行  |
-| **P2** | ItemMigrationAPI 命名                                             | 重命名为 `ItemAPI`                                                               | 未进行  |
-| **P3** | `example` / `gen` 包打包                                           | 将示例代码与开发工具类移到 test sourceSet 或独立工具模块                                         | 未进行  |
-| **P3** | API 覆盖不完整                                                       | 按需为 BlockEntity/Menu/Fluid 等添加 API                                           | 未进行  |
+| **P2** | `CompatLayer` 仍保留在源码                                            | 删除已标记 `@Deprecated(forRemoval=true)` 的兼容层                                    | 已修复  |
+| **P2** | 静态缓存无清理                                                         | 新增 `resetForTesting()` 方法                                                    | 已修复  |
+| **P2** | 查询返回 null                                                       | 改为 `Optional` 或加 `@Nullable`                                                 | 已修复  |
+| **P2** | ItemMigrationAPI 命名                                             | 重命名为 `ItemAPI`                                                               | 已修复  |
+| **P3** | `example` / `gen` 包打包                                           | 将示例代码与开发工具类移到 test sourceSet 或独立工具模块                                         | 已修复  |
+| **P3** | API 覆盖不完整                                                       | 按需为 BlockEntity/Menu/Fluid 等添加 API                                           | 已修复  |
 
 <br />
 
 <br />
-

@@ -293,7 +293,7 @@ public class EntityBuilder<T extends Entity> {
      * @throws IllegalStateException 如果缺少必要参数
      */
     public EntityResult<T> build() {
-        PasterDreamAPI.LOGGER.info("[EntityBuilder] ===== 开始构建实体: {} =====", name);
+        PasterDreamAPI.LOGGER.debug("[EntityBuilder] ===== 开始构建实体: {} =====", name);
         validate();
 
         PasterDreamAPI.LOGGER.debug("[EntityBuilder] 构建 EntityType.Builder: category={}, size={}x{}, tracking={}, interval={}, velocity={}",
@@ -341,7 +341,7 @@ public class EntityBuilder<T extends Entity> {
             PasterDreamAPI.LOGGER.debug("[EntityBuilder] 未配置技能，跳过技能缓存: {}", name);
         }
 
-        PasterDreamAPI.LOGGER.info("[EntityBuilder] ✅ 已注册实体: {} (尺寸: {}x{}, 分类: {}, 追踪范围: {})",
+        PasterDreamAPI.LOGGER.debug("[EntityBuilder] ✅ 已注册实体: {} (尺寸: {}x{}, 分类: {}, 追踪范围: {})",
                 name, width, height, category.getName(), trackingRange);
 
         return result;

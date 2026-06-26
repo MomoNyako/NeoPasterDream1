@@ -1,14 +1,20 @@
 package com.pasterdream.pasterdreammod.api.particle.builder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.pasterdream.pasterdreammod.api.PasterDreamAPI;
 import com.pasterdream.pasterdreammod.api.particle.ParticleAPI;
 import com.pasterdream.pasterdreammod.api.particle.ParticleResult;
-import com.pasterdream.pasterdreammod.api.particle.gen.ParticleGenerator;
-import com.pasterdream.pasterdreammod.api.particle.gen.ParticleTextureGenerator;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * 粒子类型构建器 —— 采用 Builder 模式链式配置和注册粒子类型
@@ -29,6 +35,8 @@ import java.io.IOException;
  * @see com.pasterdream.pasterdreammod.api.particle.ParticleAPI
  */
 public class ParticleBuilder {
+
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private final String modId;
     private final String name;
@@ -176,40 +184,36 @@ public class ParticleBuilder {
      */
     @SuppressWarnings("removal")
     public ParticleResult build() {
-        PasterDreamAPI.LOGGER.info("[ParticleBuilder] ===== 开始构建粒子: {} =====", name);
-        PasterDreamAPI.LOGGER.info("[ParticleBuilder]   配置: alwaysShow={}, texture={}, gravity={}, generateJson={}",
+        PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ===== 开始构建粒子: {} =====", name);
+        PasterDreamAPI.LOGGER.debug("[ParticleBuilder]   配置: alwaysShow={}, texture={}, gravity={}, generateJson={}",
                 alwaysShow, texturePath, gravity, generateJsonFiles);
 
         // 注册 SimpleParticleType
         PasterDreamAPI.LOGGER.debug("[ParticleBuilder] 注册 SimpleParticleType: {} (alwaysShow={})", name, alwaysShow);
         DeferredHolder<net.minecraft.core.particles.ParticleType<?>, SimpleParticleType> holder =
                 ParticleAPI.REGISTRY.register(name, () -> new SimpleParticleType(alwaysShow));
-        PasterDreamAPI.LOGGER.info("[ParticleBuilder] ✅ SimpleParticleType 已注册: {} | holder={}", name, holder);
+        PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ✅ SimpleParticleType 已注册: {} | holder={}", name, holder);
 
         // 生成资源文件
         if (generateJsonFiles) {
             try {
-                PasterDreamAPI.LOGGER.info("[ParticleBuilder] ===== 开始生成粒子资源文件: {} =====", name);
+                PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ===== 开始生成粒子资源文件: {} =====", name);
 
                 // 生成 particles/{name}.json（粒子定义）
                 PasterDreamAPI.LOGGER.debug("[ParticleBuilder] 生成粒子定义 JSON: {}/{}.json", basePath, name);
-                new ParticleGenerator(modId, name)
-                        .addTexture(texturePath)
-                        .saveToFile(basePath);
+                saveParticleJson();
 
                 // 生成 textures/particle/{name}.json（纹理元数据）
                 PasterDreamAPI.LOGGER.debug("[ParticleBuilder] 生成粒子纹理元数据: {} (gravity={})", name, gravity);
-                new ParticleTextureGenerator(modId, name)
-                        .withGravity(gravity)
-                        .saveToFile(basePath);
+                saveParticleTextureMetaJson();
 
-                PasterDreamAPI.LOGGER.info("[ParticleBuilder] ✅ 粒子资源文件生成完成: {}", name);
+                PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ✅ 粒子资源文件生成完成: {}", name);
             } catch (IOException e) {
                 PasterDreamAPI.LOGGER.error("[ParticleBuilder] ❌ 无法生成粒子资源文件 [{}]: {}", name, e.getMessage(), e);
                 throw new RuntimeException("ParticleBuilder: 无法生成粒子资源文件 [" + name + "]", e);
             }
         } else {
-            PasterDreamAPI.LOGGER.info("[ParticleBuilder] ⏭️ 跳过 JSON 文件生成: {} (generateJson=false)", name);
+            PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ⏭️ 跳过 JSON 文件生成: {} (generateJson=false)", name);
         }
 
         ParticleResult result = new ParticleResult(name, holder);
@@ -218,7 +222,58 @@ public class ParticleBuilder {
         // 缓存到 ParticleAPI 中，方便后续查询
         ParticleAPI.cacheParticle(result);
 
-        PasterDreamAPI.LOGGER.info("[ParticleBuilder] ✅ 粒子构建完成: {} | result={}", name, result);
+        PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ✅ 粒子构建完成: {} | result={}", name, result);
         return result;
+    }
+
+    /**
+     * 生成并保存粒子定义 JSON 文件
+     * <p>
+     * 目标路径：{@code {basePath}/assets/{modId}/particles/{name}.json}
+     *
+     * @throws IOException 如果文件写入失败
+     */
+    private void saveParticleJson() throws IOException {
+        JsonObject root = new JsonObject();
+        JsonArray textureArray = new JsonArray();
+        textureArray.add(texturePath);
+        root.add("textures", textureArray);
+
+        Path outputDir = Paths.get(basePath, "assets", modId, "particles");
+        Files.createDirectories(outputDir);
+
+        Path outputFile = outputDir.resolve(name + ".json");
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(root, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ✅ 已生成粒子定义 JSON → {}", outputFile);
+    }
+
+    /**
+     * 生成并保存粒子纹理元数据 JSON 文件
+     * <p>
+     * 目标路径：{@code {basePath}/assets/{modId}/textures/particle/{name}.json}
+     *
+     * @throws IOException 如果文件写入失败
+     */
+    private void saveParticleTextureMetaJson() throws IOException {
+        JsonObject root = new JsonObject();
+        root.addProperty("particle", modId + ":" + name);
+        root.addProperty("texture_dir", "assets/" + modId + "/textures/particle/");
+        root.addProperty("texture_base", modId + ":" + name);
+        if (gravity != null) {
+            root.addProperty("gravity", gravity);
+        }
+
+        Path outputDir = Paths.get(basePath, "assets", modId, "textures", "particle");
+        Files.createDirectories(outputDir);
+
+        Path outputFile = outputDir.resolve(name + ".json");
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(root, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[ParticleBuilder] ✅ 已生成粒子纹理元数据 → {}", outputFile);
     }
 }

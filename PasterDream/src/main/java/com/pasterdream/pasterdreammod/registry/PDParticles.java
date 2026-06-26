@@ -201,7 +201,7 @@ public class PDParticles {
      * 实际的粒子注册已在静态字段初始化时完成。
      */
     public static void register() {
-        PasterDreamMod.LOGGER.info("[PDParticles] 粒子注册已通过 ParticleAPI 统一管理，共 {} 个粒子",
+        PasterDreamMod.LOGGER.debug("[PDParticles] 粒子注册已通过 ParticleAPI 统一管理，共 {} 个粒子",
                 ParticleAPI.getRegisteredParticles().size());
     }
 }

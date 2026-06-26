@@ -35,31 +35,31 @@ public class PDClientItemExtensions {
     @SubscribeEvent
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
         registerDisplayItem(event, PDItems.DREAM_ACCUMULATOR.get(), new DreamAccumulatorDisplayItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: dream_accumulator → DreamAccumulatorDisplayItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: dream_accumulator → DreamAccumulatorDisplayItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.LIFE_CRYSTAL.get(), new LifeCrystalDisplayItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: life_crystal → LifeCrystalDisplayItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: life_crystal → LifeCrystalDisplayItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.SHADOW_CHEST.get(), new ShadowChestDisplayItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: shadow_chest → ShadowChestDisplayItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: shadow_chest → ShadowChestDisplayItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.MELTDREAM_CHEST.get(), new MeltdreamChestDisplayItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: meltdream_chest → MeltdreamChestDisplayItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: meltdream_chest → MeltdreamChestDisplayItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.MELTDREAM_CHEST_OPEN.get(), new MeltdreamChestOpenDisplayItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: meltdream_chest_open → MeltdreamChestOpenDisplayItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: meltdream_chest_open → MeltdreamChestOpenDisplayItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.DREAM_CAULDRON.get(), new DreamCauldronDisplayItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: dream_cauldron → DreamCauldronDisplayItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: dream_cauldron → DreamCauldronDisplayItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.THE_ENDLESS_BOOK_OF_DREAM_SEEKERS.get(), new TheEndlessBookOfDreamSeekersDisplayItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: the_endless_book_of_dream_seekers → TheEndlessBookOfDreamSeekersDisplayItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: the_endless_book_of_dream_seekers → TheEndlessBookOfDreamSeekersDisplayItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.DREAM_METER.get(), new DreamMeterItemRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册显示物品: dream_meter → DreamMeterItemRenderer（GeckoLib 3D）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册显示物品: dream_meter → DreamMeterItemRenderer（GeckoLib 3D）");
 
         registerDisplayItem(event, PDItems.MELTDREAM_LIQUID_BUCKET.get(), new MeltdreamLiquidBucketRenderer());
-        PasterDreamMod.LOGGER.info("[PDClientItemExtensions] 注册物品: meltdream_liquid_bucket → MeltdreamLiquidBucketRenderer（BEWLR 流体覆盖层兼容修复）");
+        PasterDreamMod.LOGGER.debug("[PDClientItemExtensions] 注册物品: meltdream_liquid_bucket → MeltdreamLiquidBucketRenderer（BEWLR 流体覆盖层兼容修复）");
     }
 
     /**
