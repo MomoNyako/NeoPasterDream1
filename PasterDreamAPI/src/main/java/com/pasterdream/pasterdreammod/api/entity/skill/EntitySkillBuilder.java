@@ -145,7 +145,7 @@ public class EntitySkillBuilder {
      * @throws IllegalStateException 如果缺少必要参数
      */
     public EntitySkill build() {
-        PasterDreamAPI.LOGGER.info("[EntitySkillBuilder] ===== 开始构建技能: {} =====", name);
+        PasterDreamAPI.LOGGER.debug("[EntitySkillBuilder] ===== 开始构建技能: {} =====", name);
         validate();
 
         EntitySkill skill = new EntitySkill(
@@ -153,7 +153,7 @@ public class EntitySkillBuilder {
                 cooldownTicks, particleName, soundId
         );
 
-        PasterDreamAPI.LOGGER.info("[EntitySkillBuilder] ✅ 技能构建完成: {} | damage={}, range={}, cooldown={}tick, anim={}, particle={}, sound={}",
+        PasterDreamAPI.LOGGER.debug("[EntitySkillBuilder] ✅ 技能构建完成: {} | damage={}, range={}, cooldown={}tick, anim={}, particle={}, sound={}",
                 name, damage, range, cooldownTicks, animationName,
                 particleName != null ? particleName : "无",
                 soundId != null ? soundId : "无");

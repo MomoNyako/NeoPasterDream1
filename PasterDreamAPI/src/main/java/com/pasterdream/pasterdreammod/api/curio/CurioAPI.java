@@ -4,9 +4,9 @@ import com.pasterdream.pasterdreammod.api.PasterDreamAPI;
 import com.pasterdream.pasterdreammod.api.curio.model.CurioSlot;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import top.theillusivec4.curios.api.client.ICurioRenderer;
-
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -56,12 +56,26 @@ public final class CurioAPI {
     /** 渲染器注册信息缓存：item_full_name -> render_type */
     static final Map<String, String> RENDERER_REGISTRY = new LinkedHashMap<>();
 
-    /** 渲染器供应商缓存：item_full_name -> Supplier<ICurioRenderer>
-     *  用于在客户端初始化时调用 CuriosRendererRegistry.register() */
-    static final Map<String, Supplier<ICurioRenderer>> RENDERER_SUPPLIERS = new LinkedHashMap<>();
+    /** 渲染器供应商缓存：item_full_name -> Supplier<?>
+     *  用于在客户端初始化时调用 CuriosRendererRegistry.register()
+     *  实际类型为 Supplier&lt;ICurioRenderer&gt;，使用通配符避免 API 模块引用客户端类 */
+    static final Map<String, Supplier<?>> RENDERER_SUPPLIERS = new LinkedHashMap<>();
 
     /** 已注册的饰品列表（按注册顺序） */
     static final List<CurioRegistration> REGISTERED_CURIOS = new ArrayList<>();
+
+    /**
+     * 重置所有静态缓存，供测试使用。
+     * <p>
+     * 清空渲染器注册信息、渲染器供应商以及已注册饰品列表，使每次测试都在干净的缓存状态下运行。
+     * 注意：此方法不会取消 DeferredRegister 中的已注册饰品物品，仅清除 API 层面的缓存数据。
+     */
+    public static void resetForTesting() {
+        RENDERER_REGISTRY.clear();
+        RENDERER_SUPPLIERS.clear();
+        REGISTERED_CURIOS.clear();
+        clientBridge = null;
+    }
 
     private CurioAPI() {}
 
@@ -88,9 +102,9 @@ public final class CurioAPI {
     /**
      * 获取所有已配置了渲染器的饰品供应商映射。
      *
-     * @return item_full_name -> Supplier<ICurioRenderer>
+     * @return item_full_name -> Supplier<?>（实际类型为 Supplier&lt;ICurioRenderer&gt;）
      */
-    public static Map<String, Supplier<ICurioRenderer>> getRendererSuppliers() {
+    public static Map<String, Supplier<?>> getRendererSuppliers() {
         return Collections.unmodifiableMap(RENDERER_SUPPLIERS);
     }
 
@@ -118,6 +132,12 @@ public final class CurioAPI {
      * }</pre>
      */
     public static void registerClientRenderers() {
+        // Side 校验：确保只在客户端环境调用
+        if (FMLEnvironment.dist != Dist.CLIENT) {
+            PasterDreamAPI.LOGGER.warn("[CurioAPI] registerClientRenderers() 只能在客户端调用，当前环境: {}", FMLEnvironment.dist);
+            return;
+        }
+
         // 委托给客户端处理器
         if (clientBridge != null) {
             clientBridge.registerAll();

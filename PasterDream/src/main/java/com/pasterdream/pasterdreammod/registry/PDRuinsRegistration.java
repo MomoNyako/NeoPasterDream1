@@ -33,7 +33,7 @@ public class PDRuinsRegistration {
 
     /** 注册所有染梦遗迹结构 */
     public static void register() {
-        PasterDreamMod.LOGGER.info("[PDRuinsRegistration] ===== 开始注册染梦遗迹结构 =====");
+        PasterDreamMod.LOGGER.debug("[PDRuinsRegistration] ===== 开始注册染梦遗迹结构 =====");
 
         registerDreamTrain();
         registerDyedreamWorldTree();
@@ -42,7 +42,7 @@ public class PDRuinsRegistration {
         registerDesertCottage();
 
         int count = REGISTERED_STRUCTURES.size();
-        PasterDreamMod.LOGGER.info("[PDRuinsRegistration] ✅ 染梦遗迹结构注册完成: 共 {} 个", count);
+        PasterDreamMod.LOGGER.debug("[PDRuinsRegistration] ✅ 染梦遗迹结构注册完成: 共 {} 个", count);
     }
 
     /**

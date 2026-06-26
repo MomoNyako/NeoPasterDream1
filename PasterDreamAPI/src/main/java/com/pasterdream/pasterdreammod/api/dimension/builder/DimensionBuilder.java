@@ -1,13 +1,23 @@
 package com.pasterdream.pasterdreammod.api.dimension.builder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.pasterdream.pasterdreammod.api.ApiSoundRegistry;
 import com.pasterdream.pasterdreammod.api.PasterDreamAPI;
 import com.pasterdream.pasterdreammod.api.dimension.DimensionResult;
-import com.pasterdream.pasterdreammod.api.dimension.gen.DimensionGenerator;
-import com.pasterdream.pasterdreammod.api.dimension.gen.DimensionTypeGenerator;
-import com.pasterdream.pasterdreammod.api.dimension.gen.SoundsJsonGenerator;
-import com.pasterdream.pasterdreammod.api.ApiSoundRegistry;
 
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -36,10 +46,47 @@ import java.util.function.Supplier;
  */
 public class DimensionBuilder {
 
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
     private final String modId;
     private final String dimensionName;
-    private final DimensionTypeGenerator typeGenerator;
-    private final DimensionGenerator dimensionGenerator;
+
+    // ======================== DimensionType 配置 ========================
+    private boolean ultraWarm;
+    private boolean natural = true;
+    private boolean piglinSafe;
+    private boolean respawnAnchorWorks;
+    private boolean bedWorks = true;
+    private boolean hasRaids = true;
+    private boolean hasSkylight = true;
+    private boolean hasCeiling;
+    private double coordinateScale = 1.0;
+    private double ambientLight = 0.5;
+    private int logicalHeight = 384;
+    private String infiniburn = "#minecraft:infiniburn_overworld";
+    private int minY = -64;
+    private int height = 384;
+    private int monsterSpawnLightMin = 0;
+    private int monsterSpawnLightMax = 7;
+    private int monsterSpawnBlockLightLimit = 0;
+    private String effectsId;
+
+    // ======================== Dimension 配置 ========================
+    private String dimensionTypeId;
+    private String noiseSettings;
+    private int seaLevel = 63;
+    private boolean disableMobGeneration;
+    private boolean aquifersEnabled = true;
+    private boolean oreVeinsEnabled;
+    private boolean legacyRandomSource;
+    private String defaultBlock = "minecraft:stone";
+    private String defaultFluid = "minecraft:water";
+    private int sizeHorizontal = 1;
+    private int sizeVertical = 2;
+    private String biomeSourceType = "minecraft:multi_noise";
+    private JsonArray biomes;
+    private String fixedBiome;
+    private int checkerboardScale = 2;
 
     /** 是否自动生成 JSON 资源文件，默认为 true */
     private boolean generateJsonFiles = true;
@@ -61,46 +108,51 @@ public class DimensionBuilder {
     public DimensionBuilder(String modId, String dimensionName) {
         this.modId = modId;
         this.dimensionName = dimensionName;
-        this.typeGenerator = new DimensionTypeGenerator(modId, dimensionName);
-        this.dimensionGenerator = new DimensionGenerator(modId, dimensionName);
     }
 
-    // ======================== DimensionType 配置（直接桥接到 DimensionTypeGenerator） ========================
+    // ======================== DimensionType 配置 ========================
 
-    public DimensionBuilder ultraWarm(boolean value) { typeGenerator.ultraWarm(value); return this; }
+    public DimensionBuilder ultraWarm(boolean value) { this.ultraWarm = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder ultraWarm() { return ultraWarm(true); }
-    public DimensionBuilder natural(boolean value) { typeGenerator.natural(value); return this; }
+    public DimensionBuilder natural(boolean value) { this.natural = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder natural() { return natural(true); }
-    public DimensionBuilder piglinSafe(boolean value) { typeGenerator.piglinSafe(value); return this; }
+    public DimensionBuilder piglinSafe(boolean value) { this.piglinSafe = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder piglinSafe() { return piglinSafe(true); }
-    public DimensionBuilder respawnAnchorWorks(boolean value) { typeGenerator.respawnAnchorWorks(value); return this; }
+    public DimensionBuilder respawnAnchorWorks(boolean value) { this.respawnAnchorWorks = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder respawnAnchorWorks() { return respawnAnchorWorks(true); }
-    public DimensionBuilder bedWorks(boolean value) { typeGenerator.bedWorks(value); return this; }
+    public DimensionBuilder bedWorks(boolean value) { this.bedWorks = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder bedWorks() { return bedWorks(true); }
-    public DimensionBuilder hasRaids(boolean value) { typeGenerator.hasRaids(value); return this; }
+    public DimensionBuilder hasRaids(boolean value) { this.hasRaids = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder hasRaids() { return hasRaids(true); }
-    public DimensionBuilder hasSkylight(boolean value) { typeGenerator.hasSkylight(value); return this; }
+    public DimensionBuilder hasSkylight(boolean value) { this.hasSkylight = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder hasSkylight() { return hasSkylight(true); }
-    public DimensionBuilder hasCeiling(boolean value) { typeGenerator.hasCeiling(value); return this; }
+    public DimensionBuilder hasCeiling(boolean value) { this.hasCeiling = value; return this; }
     /** 便捷方法：默认 true */
     public DimensionBuilder hasCeiling() { return hasCeiling(true); }
-    public DimensionBuilder coordinateScale(double value) { typeGenerator.coordinateScale(value); return this; }
-    public DimensionBuilder withAmbientLight(double value) { typeGenerator.ambientLight(value); return this; }
-    public DimensionBuilder logicalHeight(int value) { typeGenerator.logicalHeight(value); return this; }
-    public DimensionBuilder infiniburn(String value) { typeGenerator.infiniburn(value); return this; }
-    public DimensionBuilder minY(int value) { typeGenerator.minY(value); return this; }
-    public DimensionBuilder height(int value) { typeGenerator.height(value); return this; }
-    public DimensionBuilder monsterSpawnLight(int min, int max) { typeGenerator.monsterSpawnLight(min, max); return this; }
-    public DimensionBuilder monsterSpawnBlockLightLimit(int value) { typeGenerator.monsterSpawnBlockLightLimit(value); return this; }
+    public DimensionBuilder coordinateScale(double value) { this.coordinateScale = value; return this; }
+    public DimensionBuilder withAmbientLight(double value) { this.ambientLight = value; return this; }
+    public DimensionBuilder logicalHeight(int value) { this.logicalHeight = value; return this; }
+    public DimensionBuilder infiniburn(String value) { this.infiniburn = value; return this; }
+    public DimensionBuilder minY(int value) { this.minY = value; return this; }
+    public DimensionBuilder height(int value) { this.height = value; return this; }
+    public DimensionBuilder monsterSpawnLight(int min, int max) {
+        this.monsterSpawnLightMin = min;
+        this.monsterSpawnLightMax = max;
+        return this;
+    }
+    public DimensionBuilder monsterSpawnBlockLightLimit(int value) {
+        this.monsterSpawnBlockLightLimit = value;
+        return this;
+    }
 
-    // ======================== Dimension 配置（桥接到 DimensionGenerator） ========================
+    // ======================== Dimension 配置 ========================
 
     /**
      * 设置维度类型引用
@@ -109,7 +161,7 @@ public class DimensionBuilder {
      * 一般无需手动调用此方法。
      */
     public DimensionBuilder withDimensionType(String dimensionTypeId) {
-        dimensionGenerator.dimensionTypeId(dimensionTypeId);
+        this.dimensionTypeId = dimensionTypeId;
         return this;
     }
 
@@ -120,15 +172,15 @@ public class DimensionBuilder {
      * 使用原版主世界设置可传入 {@code "minecraft:overworld"}。
      */
     public DimensionBuilder withNoiseSettings(String noiseSettings) {
-        dimensionGenerator.noiseSettings(noiseSettings);
+        this.noiseSettings = noiseSettings;
         return this;
     }
 
-    public DimensionBuilder seaLevel(int seaLevel) { dimensionGenerator.seaLevel(seaLevel); return this; }
-    public DimensionBuilder disableMobGeneration(boolean value) { dimensionGenerator.disableMobGeneration(value); return this; }
-    public DimensionBuilder aquifersEnabled(boolean value) { dimensionGenerator.aquifersEnabled(value); return this; }
-    public DimensionBuilder oreVeinsEnabled(boolean value) { dimensionGenerator.oreVeinsEnabled(value); return this; }
-    public DimensionBuilder legacyRandomSource(boolean value) { dimensionGenerator.legacyRandomSource(value); return this; }
+    public DimensionBuilder seaLevel(int seaLevel) { this.seaLevel = seaLevel; return this; }
+    public DimensionBuilder disableMobGeneration(boolean value) { this.disableMobGeneration = value; return this; }
+    public DimensionBuilder aquifersEnabled(boolean value) { this.aquifersEnabled = value; return this; }
+    public DimensionBuilder oreVeinsEnabled(boolean value) { this.oreVeinsEnabled = value; return this; }
+    public DimensionBuilder legacyRandomSource(boolean value) { this.legacyRandomSource = value; return this; }
 
     /**
      * 设置维度默认方块
@@ -136,7 +188,7 @@ public class DimensionBuilder {
      * @param blockId 方块 ID（如 "minecraft:calcite"）
      */
     public DimensionBuilder withDefaultBlock(String blockId) {
-        dimensionGenerator.defaultBlock(blockId);
+        this.defaultBlock = blockId;
         return this;
     }
 
@@ -146,7 +198,7 @@ public class DimensionBuilder {
      * @param fluidId 流体 ID（如 "minecraft:water"）
      */
     public DimensionBuilder withDefaultFluid(String fluidId) {
-        dimensionGenerator.defaultFluid(fluidId);
+        this.defaultFluid = fluidId;
         return this;
     }
 
@@ -164,7 +216,25 @@ public class DimensionBuilder {
                                      double[] temperature, double[] humidity,
                                      double[] continental, double[] weirdness,
                                      double[] erosion) {
-        dimensionGenerator.addBiome(biomeId, temperature, humidity, continental, weirdness, erosion);
+        if (this.biomes == null) {
+            this.biomes = new JsonArray();
+        }
+        this.biomeSourceType = "minecraft:multi_noise";
+
+        JsonObject entry = new JsonObject();
+        entry.addProperty("biome", biomeId);
+
+        JsonObject params = new JsonObject();
+        addRange(params, "temperature", temperature);
+        addRange(params, "humidity", humidity);
+        addRange(params, "continentalness", continental);
+        addRange(params, "weirdness", weirdness);
+        addRange(params, "erosion", erosion);
+        params.addProperty("depth", 0);
+        params.addProperty("offset", 0);
+
+        entry.add("parameters", params);
+        this.biomes.add(entry);
         return this;
     }
 
@@ -174,7 +244,9 @@ public class DimensionBuilder {
      * @param biomeId 固定生物群系 ID
      */
     public DimensionBuilder withFixedBiome(String biomeId) {
-        dimensionGenerator.fixedBiome(biomeId);
+        this.biomeSourceType = "minecraft:fixed";
+        this.fixedBiome = biomeId;
+        this.biomes = null;
         return this;
     }
 
@@ -269,24 +341,24 @@ public class DimensionBuilder {
         String dimensionTypeId = modId + ":" + dimensionName;
 
         // 自动设置 dimensionTypeId
-        dimensionGenerator.dimensionTypeId(dimensionTypeId);
+        this.dimensionTypeId = dimensionTypeId;
 
         // 自动设置 effectsId 为自身（允许客户端注册 DimensionSpecialEffects）
-        typeGenerator.effectsId(dimensionTypeId);
+        this.effectsId = dimensionTypeId;
 
         if (generateJsonFiles) {
             try {
-                PasterDreamAPI.LOGGER.info("[DimensionBuilder] ===== 开始生成维度资源文件: {} =====", dimensionName);
+                PasterDreamAPI.LOGGER.debug("[DimensionBuilder] ===== 开始生成维度资源文件: {} =====", dimensionName);
 
-                typeGenerator.saveToFile(basePath);
-                dimensionGenerator.saveToFile(basePath);
+                saveDimensionTypeJson();
+                saveDimensionJson();
 
                 // 如果有配置背景音乐，自动注册 SoundEvent 并生成 sounds.json
                 if (musicName != null) {
                     registerMusic();
                 }
 
-                PasterDreamAPI.LOGGER.info("[DimensionBuilder] ✅ 维度资源文件生成完成: {}", dimensionName);
+                PasterDreamAPI.LOGGER.debug("[DimensionBuilder] ✅ 维度资源文件生成完成: {}", dimensionName);
             } catch (IOException e) {
                 PasterDreamAPI.LOGGER.error("[DimensionBuilder] ❌ 无法生成维度资源文件 [{}]: {}", dimensionName, e.getMessage(), e);
                 throw new RuntimeException("DimensionBuilder: 无法生成维度资源文件 [" + dimensionName + "]", e);
@@ -294,7 +366,7 @@ public class DimensionBuilder {
         } else if (musicName != null) {
             // 即使不生成 JSON 文件，也要注册 SoundEvent
             ApiSoundRegistry.registerDimensionMusic(musicName);
-            PasterDreamAPI.LOGGER.info("[DimensionBuilder] 已注册背景音乐 SoundEvent: {}.music.{}, 请确保 .ogg 文件存在",
+            PasterDreamAPI.LOGGER.debug("[DimensionBuilder] 已注册背景音乐 SoundEvent: {}.music.{}, 请确保 .ogg 文件存在",
                     modId, musicName);
         }
 
@@ -314,18 +386,206 @@ public class DimensionBuilder {
         Supplier<net.minecraft.sounds.SoundEvent> soundSupplier = ApiSoundRegistry.registerDimensionMusic(musicName);
 
         // 2. 生成 sounds.json 条目（传入音量参数）
-        new SoundsJsonGenerator(modId)
-                .addDimensionMusic(musicName, musicVolume)
-                .saveToFile(basePath);
+        saveSoundsJson();
 
         // 3. 检查 .ogg 文件是否存在（仅给出警告，不阻止构建）
-        java.nio.file.Path oggPath = java.nio.file.Paths.get(
-                basePath, "assets", modId, "sounds", "music", musicName + ".ogg");
-        if (!java.nio.file.Files.exists(oggPath)) {
+        Path oggPath = Paths.get(basePath, "assets", modId, "sounds", "music", musicName + ".ogg");
+        if (!Files.exists(oggPath)) {
             PasterDreamAPI.LOGGER.warn("[DimensionBuilder] ⚠️ 背景音乐 .ogg 文件未找到: {}",
                     oggPath.toAbsolutePath().normalize());
             PasterDreamAPI.LOGGER.warn("[DimensionBuilder] 📌 请在以下位置放置 .ogg 音频文件:");
             PasterDreamAPI.LOGGER.warn("[DimensionBuilder]    {}", oggPath.toAbsolutePath().normalize());
         }
+    }
+
+    /**
+     * 生成并保存 dimension_type JSON 文件
+     * <p>
+     * 目标路径：{@code {basePath}/data/{modId}/dimension_type/{dimensionName}.json}
+     *
+     * @throws IOException 如果文件写入失败
+     */
+    private void saveDimensionTypeJson() throws IOException {
+        JsonObject root = new JsonObject();
+
+        root.addProperty("ultrawarm", ultraWarm);
+        root.addProperty("natural", natural);
+        root.addProperty("piglin_safe", piglinSafe);
+        root.addProperty("respawn_anchor_works", respawnAnchorWorks);
+        root.addProperty("bed_works", bedWorks);
+        root.addProperty("has_raids", hasRaids);
+        root.addProperty("has_skylight", hasSkylight);
+        root.addProperty("has_ceiling", hasCeiling);
+        root.addProperty("coordinate_scale", coordinateScale);
+        root.addProperty("ambient_light", ambientLight);
+        root.addProperty("logical_height", logicalHeight);
+        root.addProperty("infiniburn", infiniburn);
+        root.addProperty("min_y", minY);
+        root.addProperty("height", height);
+
+        JsonObject spawnLight = new JsonObject();
+        spawnLight.addProperty("type", "minecraft:uniform");
+        spawnLight.addProperty("min_inclusive", monsterSpawnLightMin);
+        spawnLight.addProperty("max_inclusive", monsterSpawnLightMax);
+        root.add("monster_spawn_light_level", spawnLight);
+        root.addProperty("monster_spawn_block_light_limit", monsterSpawnBlockLightLimit);
+
+        if (effectsId != null) {
+            root.addProperty("effects", effectsId);
+        }
+
+        Path outputDir = Paths.get(basePath, "data", modId, "dimension_type");
+        Files.createDirectories(outputDir);
+
+        Path outputFile = outputDir.resolve(dimensionName + ".json");
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(root, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[DimensionBuilder] ✅ 已生成 dimension_type JSON → {}", outputFile);
+    }
+
+    /**
+     * 生成并保存 dimension JSON 文件
+     * <p>
+     * 目标路径：{@code {basePath}/data/{modId}/dimension/{dimensionName}.json}
+     *
+     * @throws IOException 如果文件写入失败
+     */
+    private void saveDimensionJson() throws IOException {
+        JsonObject root = new JsonObject();
+
+        if (dimensionTypeId != null) {
+            root.addProperty("type", dimensionTypeId);
+        }
+
+        JsonObject generator = new JsonObject();
+        generator.addProperty("type", "minecraft:noise");
+
+        JsonObject biomeSource = new JsonObject();
+        biomeSource.addProperty("type", biomeSourceType);
+
+        if ("minecraft:fixed".equals(biomeSourceType) && fixedBiome != null) {
+            biomeSource.addProperty("biome", fixedBiome);
+        } else if ("minecraft:checkerboard".equals(biomeSourceType) && biomes != null) {
+            biomeSource.add("biomes", biomes);
+            biomeSource.addProperty("scale", checkerboardScale);
+        } else if (biomes != null) {
+            biomeSource.add("biomes", biomes);
+        }
+
+        generator.add("biome_source", biomeSource);
+
+        JsonObject settings = new JsonObject();
+        if (noiseSettings != null) {
+            settings.addProperty("name", noiseSettings);
+        }
+        settings.addProperty("sea_level", seaLevel);
+        settings.addProperty("disable_mob_generation", disableMobGeneration);
+        settings.addProperty("aquifers_enabled", aquifersEnabled);
+        settings.addProperty("ore_veins_enabled", oreVeinsEnabled);
+        settings.addProperty("legacy_random_source", legacyRandomSource);
+
+        JsonObject defaultBlockObj = new JsonObject();
+        defaultBlockObj.addProperty("Name", defaultBlock);
+        settings.add("default_block", defaultBlockObj);
+
+        JsonObject defaultFluidObj = new JsonObject();
+        defaultFluidObj.addProperty("Name", defaultFluid);
+        JsonObject fluidProps = new JsonObject();
+        fluidProps.addProperty("level", "0");
+        defaultFluidObj.add("Properties", fluidProps);
+        settings.add("default_fluid", defaultFluidObj);
+
+        settings.add("spawn_target", new JsonArray());
+
+        JsonObject noise = new JsonObject();
+        noise.addProperty("min_y", minY);
+        noise.addProperty("height", height);
+        noise.addProperty("size_horizontal", sizeHorizontal);
+        noise.addProperty("size_vertical", sizeVertical);
+        settings.add("noise", noise);
+
+        generator.add("settings", settings);
+        root.add("generator", generator);
+
+        Path outputDir = Paths.get(basePath, "data", modId, "dimension");
+        Files.createDirectories(outputDir);
+
+        Path outputFile = outputDir.resolve(dimensionName + ".json");
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(root, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[DimensionBuilder] ✅ 已生成 dimension JSON → {}", outputFile);
+    }
+
+    /**
+     * 生成并保存 sounds.json 文件
+     * <p>
+     * 目标路径：{@code {basePath}/assets/{modId}/sounds.json}
+     *
+     * @throws IOException 如果文件读写失败
+     */
+    private void saveSoundsJson() throws IOException {
+        String soundKey = "music." + musicName;
+        String soundPath = modId + ":music/" + musicName;
+
+        JsonObject entry = new JsonObject();
+        entry.addProperty("category", "music");
+        entry.addProperty("subtitle", "subtitle." + modId + "." + soundKey);
+
+        JsonArray sounds = new JsonArray();
+        JsonObject soundObj = new JsonObject();
+        soundObj.addProperty("name", soundPath);
+        soundObj.addProperty("stream", true);
+        soundObj.addProperty("volume", musicVolume);
+        sounds.add(soundObj);
+        entry.add("sounds", sounds);
+
+        JsonObject merged = loadExistingSoundsJson();
+        merged.add(soundKey, entry);
+
+        Path outputFile = Paths.get(basePath, "assets", modId, "sounds.json");
+        Files.createDirectories(outputFile.getParent());
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(merged, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[DimensionBuilder] ✅ 已更新 sounds.json → {}", outputFile);
+    }
+
+    /**
+     * 加载已有的 sounds.json 文件
+     *
+     * @return 已有的 sounds.json 对象，不存在时返回空对象
+     */
+    private JsonObject loadExistingSoundsJson() {
+        Path existingFile = Paths.get(basePath, "assets", modId, "sounds.json");
+        if (Files.exists(existingFile)) {
+            try (FileReader reader = new FileReader(existingFile.toFile())) {
+                JsonElement parsed = JsonParser.parseReader(reader);
+                if (parsed != null && parsed.isJsonObject()) {
+                    return parsed.getAsJsonObject();
+                }
+            } catch (IOException e) {
+                PasterDreamAPI.LOGGER.warn("[DimensionBuilder] 读取已有 sounds.json 失败: {}", e.getMessage());
+            }
+        }
+        return new JsonObject();
+    }
+
+    /**
+     * 向 JSON 对象中添加范围数组
+     *
+     * @param parent 目标 JSON 对象
+     * @param key    键名
+     * @param range  范围数组 [min, max]
+     */
+    private void addRange(JsonObject parent, String key, double[] range) {
+        JsonArray arr = new JsonArray();
+        arr.add(range[0]);
+        arr.add(range[1]);
+        parent.add(key, arr);
     }
 }

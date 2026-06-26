@@ -10,6 +10,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -39,20 +40,17 @@ import java.util.function.Supplier;
  * // ====== 在 ClientSetup 中注册 Provider ======
  * @SubscribeEvent
  * public static void registerParticles(RegisterParticleProvidersEvent event) {
- *     ParticleResult result = ParticleAPI.getParticle("sparkle");
- *     if (result != null) {
+ *     ParticleAPI.getParticle("sparkle").ifPresent(result ->
  *         event.registerSpriteSet(
  *             (SimpleParticleType) result.particleType(),
- *             SparkleParticle.Provider::new);
- *     }
+ *             SparkleParticle.Provider::new));
  * }
  *
  * // ====== 查询粒子类型 ======
- * ParticleResult result = ParticleAPI.getParticle("sparkle");
- * if (result != null) {
+ * ParticleAPI.getParticle("sparkle").ifPresent(result -> {
  *     ParticleType<?> type = result.particleType();
  *     // 使用 type 生成粒子...
- * }
+ * });
  * }</pre>
  *
  * @see com.pasterdream.pasterdreammod.api.particle.builder.ParticleBuilder
@@ -74,6 +72,16 @@ public final class ParticleAPI {
     /** 已注册的粒子结果缓存 */
     private static final Map<String, ParticleResult> REGISTERED_PARTICLES = new HashMap<>();
 
+    /**
+     * 重置所有静态缓存，供测试使用。
+     * <p>
+     * 清空已注册粒子结果缓存，使每次测试都在干净的缓存状态下运行。
+     * 注意：此方法不会取消 DeferredRegister 中的已注册粒子类型，仅清除 API 层面的缓存数据。
+     */
+    public static void resetForTesting() {
+        REGISTERED_PARTICLES.clear();
+    }
+
     private ParticleAPI() {
         throw new UnsupportedOperationException("ParticleAPI 是纯静态门面类，不可实例化");
     }
@@ -90,7 +98,7 @@ public final class ParticleAPI {
      * @return {@link ParticleBuilder} 实例
      */
     public static ParticleBuilder createParticle(String particleName) {
-        PasterDreamAPI.LOGGER.info("[ParticleAPI] 开始创建粒子构建器: {}", particleName);
+        PasterDreamAPI.LOGGER.debug("[ParticleAPI] 开始创建粒子构建器: {}", particleName);
         return new ParticleBuilder(PasterDreamAPI.MOD_ID, particleName);
     }
 
@@ -100,12 +108,12 @@ public final class ParticleAPI {
      * 获取已注册的粒子结果
      *
      * @param particleName 粒子注册名称
-     * @return {@link ParticleResult}，如果未找到返回 null
+     * @return 包含 {@link ParticleResult} 的 {@link Optional}，如果未找到则返回空 Optional
      */
-    public static ParticleResult getParticle(String particleName) {
+    public static Optional<ParticleResult> getParticle(String particleName) {
         ParticleResult result = REGISTERED_PARTICLES.get(particleName);
         PasterDreamAPI.LOGGER.debug("[ParticleAPI] 🔍 查询粒子: {} → {}", particleName, result != null ? "已找到" : "未找到");
-        return result;
+        return Optional.ofNullable(result);
     }
 
     /**
@@ -114,13 +122,13 @@ public final class ParticleAPI {
      * 便捷方法，直接返回 ParticleType 引用。
      *
      * @param particleName 粒子注册名称
-     * @return {@link ParticleType}，如果未找到返回 null
+     * @return 包含 {@link ParticleType} 的 {@link Optional}，如果未找到则返回空 Optional
      */
-    public static ParticleType<?> getParticleType(String particleName) {
+    public static Optional<ParticleType<?>> getParticleType(String particleName) {
         ParticleResult result = REGISTERED_PARTICLES.get(particleName);
         ParticleType<?> type = result != null ? result.particleType() : null;
         PasterDreamAPI.LOGGER.debug("[ParticleAPI] 🔍 查询粒子类型: {} → {}", particleName, type != null ? type : "null");
-        return type;
+        return Optional.ofNullable(type);
     }
 
     /**
@@ -129,16 +137,16 @@ public final class ParticleAPI {
      * 适用于需要在注册阶段引用粒子类型的场景。
      *
      * @param particleName 粒子注册名称
-     * @return 粒子类型的 Supplier，如果未找到返回 null
+     * @return 包含粒子类型 Supplier 的 {@link Optional}，如果未找到则返回空 Optional
      */
-    public static Supplier<ParticleType<?>> getParticleSupplier(String particleName) {
+    public static Optional<Supplier<ParticleType<?>>> getParticleSupplier(String particleName) {
         ParticleResult result = REGISTERED_PARTICLES.get(particleName);
         if (result != null) {
             PasterDreamAPI.LOGGER.debug("[ParticleAPI] 🔍 查询粒子 Supplier: {}", particleName);
-            return result::particleType;
+            return Optional.of(result::particleType);
         }
         PasterDreamAPI.LOGGER.debug("[ParticleAPI] 🔍 查询粒子 Supplier: {} → null（未找到）", particleName);
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -165,6 +173,6 @@ public final class ParticleAPI {
     public static void cacheParticle(ParticleResult result) {
         REGISTERED_PARTICLES.put(result.name(), result);
         int total = REGISTERED_PARTICLES.size();
-        PasterDreamAPI.LOGGER.info("[ParticleAPI] 📦 已缓存粒子: {} | 缓存总数: {} | holder={}", result.name(), total, result.holder());
+        PasterDreamAPI.LOGGER.debug("[ParticleAPI] 📦 已缓存粒子: {} | 缓存总数: {} | holder={}", result.name(), total, result.holder());
     }
 }

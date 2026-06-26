@@ -20,10 +20,20 @@ neoForge {
         mappingsVersion = project.parchment_mappings_version
         minecraftVersion = project.parchment_minecraft_version
     }
+
+    // 为 test sourceSet 添加 Minecraft / NeoForge 编译依赖，
+    // 使迁移到 src/test/java 的 dimension/example/ 示例类能够编译
+    addModdingDependenciesTo(sourceSets.test)
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+// test sourceSet 中存放的是示例/工具类，没有 JUnit 测试，
+// 关闭“未发现测试即失败”的校验，避免 build 任务中断
+tasks.named('test', Test).configure {
+    failOnNoDiscoveredTests = false
 }
 
 repositories {

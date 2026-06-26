@@ -7,6 +7,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
+import top.theillusivec4.curios.api.client.ICurioRenderer;
+
+import java.util.function.Supplier;
 
 /**
  * 饰品客户端处理器 —— 负责初始化饰品客户端桥接
@@ -46,6 +49,7 @@ public class CurioClientHandler implements CurioAPI.CurioClientBridge {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void registerAll() {
         // 1. 遍历所有配置了渲染器的饰品，注册到 CuriosRendererRegistry
         for (var entry : CurioAPI.getRendererSuppliers().entrySet()) {
@@ -54,8 +58,8 @@ public class CurioClientHandler implements CurioAPI.CurioClientBridge {
             Item item = BuiltInRegistries.ITEM.get(id);
 
             if (item != Items.AIR) {
-                CuriosRendererRegistry.register(item, entry.getValue());
-                PasterDreamMod.LOGGER.info(
+                CuriosRendererRegistry.register(item, (Supplier<ICurioRenderer>) entry.getValue());
+                PasterDreamMod.LOGGER.debug(
                         "[CurioClient] 已注册饰品渲染器: {}",
                         fullName);
             } else {
@@ -68,7 +72,7 @@ public class CurioClientHandler implements CurioAPI.CurioClientBridge {
         // 2. 遍历所有配置了渲染的饰品并输出日志
         for (var registration : CurioAPI.getRegisteredCurios()) {
             if (!"none".equals(registration.renderType())) {
-                PasterDreamMod.LOGGER.info(
+                PasterDreamMod.LOGGER.debug(
                         "[CurioClient] 饰品 {} 配置了渲染类型: {}",
                         registration.fullName(),
                         registration.renderType());

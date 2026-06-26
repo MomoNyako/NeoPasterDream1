@@ -50,7 +50,7 @@ public class PDDyedreamBiomeModifier implements BiomeModifier {
     public void modify(Holder<Biome> biome, Phase phase, ModifiableBiomeInfo.BiomeInfo.Builder builder) {
         // 日志①：不管什么阶段、什么群系，先确认这个方法有没有被调用
         Optional<ResourceKey<Biome>> biomeKey = biome.unwrapKey();
-        LOGGER.info("[modify] 被调用 — phase={}, biome={}, biomeTags={}",
+        LOGGER.debug("[modify] 被调用 — phase={}, biome={}, biomeTags={}",
                 phase,
                 biomeKey.map(key -> key.location().toString()).orElse("unknown"),
                 biome.tags().map(tag -> tag.location().toString()).toList());
@@ -58,7 +58,7 @@ public class PDDyedreamBiomeModifier implements BiomeModifier {
         if (phase == Phase.ADD) {
             // 日志②：检查群系标签是否匹配
             boolean tagMatched = biome.tags().anyMatch(tag -> tag.location().equals(DYEDREAM_BIOME_TAG));
-            LOGGER.info("[modify] 标签匹配检查 — targetTag={}, matched={}", DYEDREAM_BIOME_TAG, tagMatched);
+            LOGGER.debug("[modify] 标签匹配检查 — targetTag={}, matched={}", DYEDREAM_BIOME_TAG, tagMatched);
 
             if (tagMatched) {
                 // 日志③：检查服务器实例
@@ -67,30 +67,30 @@ public class PDDyedreamBiomeModifier implements BiomeModifier {
                     LOGGER.warn("[modify] ❌ 服务器实例不可用（ServerLifecycleHooks.getCurrentServer() 返回 null），无法注入特征到染梦群系");
                     return;
                 }
-                LOGGER.info("[modify] ✅ 服务器实例可用: {}", server);
+                LOGGER.debug("[modify] ✅ 服务器实例可用: {}", server);
 
                 // 日志④：检查 PlacedFeature 注册表
                 var placedFeatureLookup = server.registryAccess().lookupOrThrow(Registries.PLACED_FEATURE);
-                LOGGER.info("[modify] ✅ PlacedFeature 注册表获取成功");
+                LOGGER.debug("[modify] ✅ PlacedFeature 注册表获取成功");
 
                 // ==================== 矿石（所有染梦群系） ====================
-                LOGGER.info("[modify] --- 开始注入矿石 ---");
+                LOGGER.debug("[modify] --- 开始注入矿石 ---");
                 addFeature(builder, GenerationStep.Decoration.UNDERGROUND_ORES, placedFeatureLookup, PDPlacedFeatures.ORE_AMBER_CANDY);
                 addFeature(builder, GenerationStep.Decoration.UNDERGROUND_ORES, placedFeatureLookup, PDPlacedFeatures.ORE_DYEDREAMDUST);
                 addFeature(builder, GenerationStep.Decoration.UNDERGROUND_ORES, placedFeatureLookup, PDPlacedFeatures.ORE_DYEDREAMQUARTZ);
 
                 // ==================== 树木 ====================
-                LOGGER.info("[modify] --- 开始注入树木 ---");
+                LOGGER.debug("[modify] --- 开始注入树木 ---");
                 addFeature(builder, GenerationStep.Decoration.VEGETAL_DECORATION, placedFeatureLookup, PDPlacedFeatures.DYEDREAM_TREES);
 
                 // ==================== 植被 ====================
-                LOGGER.info("[modify] --- 开始注入植被 ---");
+                LOGGER.debug("[modify] --- 开始注入植被 ---");
                 addFeature(builder, GenerationStep.Decoration.VEGETAL_DECORATION, placedFeatureLookup, PDPlacedFeatures.PATCH_DYEDREAM_GRASS);
                 addFeature(builder, GenerationStep.Decoration.VEGETAL_DECORATION, placedFeatureLookup, PDPlacedFeatures.PATCH_DYEDREAM_BUDS);
                 addFeature(builder, GenerationStep.Decoration.VEGETAL_DECORATION, placedFeatureLookup, PDPlacedFeatures.PATCH_PINKAGARIC);
                 addFeature(builder, GenerationStep.Decoration.VEGETAL_DECORATION, placedFeatureLookup, PDPlacedFeatures.PATCH_DYEDREAM_SEAGRASS);
 
-                LOGGER.info("[modify] ✅ 染梦群系特征注入完成！");
+                LOGGER.debug("[modify] ✅ 染梦群系特征注入完成！");
             }
         }
     }
@@ -108,12 +108,12 @@ public class PDDyedreamBiomeModifier implements BiomeModifier {
                                    HolderLookup<PlacedFeature> lookup,
                                    ResourceKey<PlacedFeature> featureKey) {
         ResourceLocation featureId = featureKey.location();
-        LOGGER.info("[addFeature] 正在添加 feature={}, step={}", featureId, step);
+        LOGGER.debug("[addFeature] 正在添加 feature={}, step={}", featureId, step);
 
         lookup.get(featureKey).ifPresentOrElse(
                 holder -> {
                     builder.getGenerationSettings().addFeature(step, holder);
-                    LOGGER.info("[addFeature] ✅ 成功添加 feature={}, step={}", featureId, step);
+                    LOGGER.debug("[addFeature] ✅ 成功添加 feature={}, step={}", featureId, step);
                 },
                 () -> LOGGER.warn("[addFeature] ❌ 找不到 PlacedFeature: {}（请检查对应的 JSON 文件是否存在且格式正确）", featureId)
         );

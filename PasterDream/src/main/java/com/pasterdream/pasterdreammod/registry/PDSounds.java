@@ -1,20 +1,21 @@
 package com.pasterdream.pasterdreammod.registry;
 
 import com.pasterdream.pasterdreammod.PasterDreamMod;
+import com.pasterdream.pasterdreammod.api.ApiSoundRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
  * 声音事件注册类 —— 管理模组中所有自定义声音、背景音乐的注册
  * <p>
- * 通过 {@link DeferredRegister} 注册所有 {@link SoundEvent}，
- * 并提供便捷的维度背景音乐注册方法。
+ * 通过 {@link DeferredRegister} 注册所有 {@link SoundEvent}。
+ * 维度背景音乐统一委托给 {@link ApiSoundRegistry}，避免与 API 模块重复注册，
+ * 同时复用 API 模块的 {@code .ogg} 文件存在性校验。
  * <p>
  * 注意：注册 SoundEvent 后还需要在 {@code sounds.json} 中声明对应的声音条目，
  * 详见 {@link com.pasterdream.pasterdreammod.api.dimension.gen.SoundsJsonGenerator}。
@@ -25,7 +26,7 @@ import java.util.function.Supplier;
  * PDSounds.SOUND_EVENTS.register(modEventBus);
  *
  * // 获取已注册的音乐事件：
- * Supplier<SoundEvent> music = PDSounds.getDimensionMusic("dyedream_world");
+ * Optional<Supplier<SoundEvent>> music = PDSounds.getDimensionMusic("dyedream_world");
  * }</pre>
  */
 public class PDSounds {
@@ -39,9 +40,6 @@ public class PDSounds {
      */
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
             DeferredRegister.create(Registries.SOUND_EVENT, PasterDreamMod.MOD_ID);
-
-    /** 缓存已注册的维度音乐事件 */
-    private static final Map<String, Supplier<SoundEvent>> DIMENSION_MUSIC_CACHE = new HashMap<>();
 
     // ==================== 融梦水晶箱 SoundEvent ====================
 
@@ -119,61 +117,18 @@ public class PDSounds {
             () -> SoundEvent.createVariableRangeEvent(
                     ResourceLocation.fromNamespaceAndPath(PasterDreamMod.MOD_ID, "music/dream_delta")));
 
+    // ==================== 维度背景音乐（委托给 ApiSoundRegistry） ====================
+
     /**
-     * 静态初始化：在注册阶段前预注册所有已知维度的背景音乐
+     * 获取已注册的维度背景音乐。
      * <p>
-     * 防止 {@link DimensionBuilder#build()} 在运行时被延迟触发（如通过 {@code PDDimensions} 的静态块懒加载）
-     * 时调用 {@link #registerDimensionMusic}，而此时 RegisterEvent 已过、DeferredRegister 已锁定无法注册新条目。
-     */
-    static {
-        // === 预注册所有已知维度的背景音乐 ===
-        registerDimensionMusic("dyedream_world");
-        // === 预注册染梦维度各群系的自定义背景音乐（用于群系BGM关联） ===
-        registerDimensionMusic("dream_meadow");
-        registerDimensionMusic("dream_heath");
-        registerDimensionMusic("dream_taiga");
-        registerDimensionMusic("dream_delta");
-        registerDimensionMusic("sweetdream_music");
-        registerDimensionMusic("snowfall_dream_music");
-    }
-
-    /**
-     * 注册一个维度背景音乐 SoundEvent
-     * <p>
-     * 注册 ID 格式为 {@code music.{musicName}}（遵循 Minecraft 原版惯例，
-     * 如 {@code music.dyedream_world}），声音文件对应路径为
-     * {@code assets/pasterdream/sounds/music/{musicName}.ogg}。
-     *
-     * @param musicName 音乐名称（如 "dyedream_world"）
-     * @return 已注册的 SoundEvent Supplier
-     */
-    public static synchronized Supplier<SoundEvent> registerDimensionMusic(String musicName) {
-        // 如果已缓存，直接返回
-        Supplier<SoundEvent> cached = DIMENSION_MUSIC_CACHE.get(musicName);
-        if (cached != null) {
-            return cached;
-        }
-
-        String soundId = "music." + musicName;
-        Supplier<SoundEvent> supplier = SOUND_EVENTS.register(soundId,
-                () -> SoundEvent.createVariableRangeEvent(
-                        ResourceLocation.fromNamespaceAndPath(PasterDreamMod.MOD_ID, soundId)
-                ));
-
-        DIMENSION_MUSIC_CACHE.put(musicName, supplier);
-        PasterDreamMod.LOGGER.info("[PDSounds] ✅ 已注册背景音乐 SoundEvent: {} (assets/{}/sounds/music/{}.ogg)",
-                soundId, PasterDreamMod.MOD_ID, musicName);
-        return supplier;
-    }
-
-    /**
-     * 获取已注册的维度背景音乐
+     * 实际注册与缓存由 {@link ApiSoundRegistry} 处理，此处仅提供与 PDSounds 风格一致的访问入口。
      *
      * @param musicName 音乐名称（与注册时一致）
-     * @return SoundEvent Supplier，如果未注册返回 null
+     * @return 包含 SoundEvent Supplier 的 {@link Optional}，如果对应 {@code .ogg} 文件缺失或未注册则返回空 Optional
      */
-    public static Supplier<SoundEvent> getDimensionMusic(String musicName) {
-        return DIMENSION_MUSIC_CACHE.get(musicName);
+    public static Optional<Supplier<SoundEvent>> getDimensionMusic(String musicName) {
+        return ApiSoundRegistry.getDimensionMusic(musicName);
     }
 
     // ==================== 实体技能音效 ====================

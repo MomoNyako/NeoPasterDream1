@@ -132,14 +132,5 @@ public class ModDecorations {
         OceanDecorations.registerFrostSpike();
     }
 
-    /**
-     * 生成所有已注册装饰物的 JSON 数据文件
-     * <p>
-     * 仅供开发阶段使用，会覆盖已有 JSON 文件。
-     * 生成后应将此方法的调用从主类中移除。
-     * 不重复调用 register()，仅用已注册的条目生成 JSON。
-     */
-    public static void generateJson() {
-        DecorationRegistry.generateAllJson();
-    }
 }
+

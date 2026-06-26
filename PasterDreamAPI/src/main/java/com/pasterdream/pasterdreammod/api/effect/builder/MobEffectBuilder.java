@@ -258,7 +258,7 @@ public class MobEffectBuilder {
      * @return {@link MobEffectResult} 包含效果类型的所有引用信息
      */
     public MobEffectResult build() {
-        PasterDreamAPI.LOGGER.info("[MobEffectBuilder] ===== 开始构建效果: {} =====", name);
+        PasterDreamAPI.LOGGER.debug("[MobEffectBuilder] ===== 开始构建效果: {} =====", name);
         validate();
 
         // 构建 EffectConfig
@@ -277,7 +277,7 @@ public class MobEffectBuilder {
         DeferredHolder<MobEffect, MobEffect> holder = MobEffectAPI.REGISTRY.register(
                 name, () -> new PasterDreamEffect(category, color, config)
         );
-        PasterDreamAPI.LOGGER.info("[MobEffectBuilder] ✅ MobEffect 已注册: {} | holder={} | instant={}", name, holder, instant);
+        PasterDreamAPI.LOGGER.debug("[MobEffectBuilder] ✅ MobEffect 已注册: {} | holder={} | instant={}", name, holder, instant);
 
         // 创建结果
         MobEffectResult result = new MobEffectResult(name, holder);
@@ -291,7 +291,7 @@ public class MobEffectBuilder {
             PasterDreamAPI.LOGGER.debug("[MobEffectBuilder] 标记为瞬时效果: {}", name);
         }
 
-        PasterDreamAPI.LOGGER.info("[MobEffectBuilder] ✅ 效果构建完成: {} | category={}, color=#{}, config=着色器:{} 粒子:{} tick回调:{} 应用回调:{} 移除回调:{} 叠加:{}",
+        PasterDreamAPI.LOGGER.debug("[MobEffectBuilder] ✅ 效果构建完成: {} | category={}, color=#{}, config=着色器:{} 粒子:{} tick回调:{} 应用回调:{} 移除回调:{} 叠加:{}",
                 name, category.name(), Integer.toHexString(color),
                 shaderTexture != null ? "✅" : "❌",
                 particleType != null ? "✅" : "❌",

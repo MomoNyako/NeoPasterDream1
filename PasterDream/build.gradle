@@ -41,6 +41,10 @@ neoForge {
         minecraftVersion = project.parchment_minecraft_version
     }
 
+    // 为 test sourceSet 添加 Minecraft / NeoForge 编译依赖，
+    // 使迁移到 src/test/java 的测试运行器能够编译和运行
+    addModdingDependenciesTo(sourceSets.test)
+
     runs {
         client {
             client()
@@ -84,6 +88,9 @@ configurations {
 
 dependencies {
     implementation project(':PasterDreamAPI')
+
+    // 使 PasterDream 的 test sourceSet 能够访问 PasterDreamAPI 的 test sourceSet（gen/example 类）
+    testImplementation project(':PasterDreamAPI').sourceSets.test.output
 
     implementation files(rootProject.file('libs/geckolib-neoforge-1.21.1-4.8.4.jar'))
     implementation files(rootProject.file('libs/player-animation-lib-forge-2.0.4+1.21.1.jar'))
@@ -135,10 +142,10 @@ tasks.named('runServer', JavaExec).configure {
 // ======================== 自定义任务 ========================
 
 tasks.register('runRecipeDemo', JavaExec) {
-    description = '运行 RecipeGenerationDemo，生成示例配方 JSON 到 resources 目录'
+    description = '运行 RecipeAPIDemo，生成示例配方 JSON 到 resources 目录'
     group = 'PasterDream'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.pasterdream.pasterdreammod.api.itemmigration.example.RecipeGenerationDemo'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.pasterdream.pasterdreammod.api.item.example.RecipeAPIDemo'
     workingDir = project.projectDir
     standardOutput = System.out
 }
@@ -146,7 +153,7 @@ tasks.register('runRecipeDemo', JavaExec) {
 tasks.register('runDimensionApiDemo', JavaExec) {
     description = '运行 DimensionAPI 示例程序，验证 API 全部功能'
     group = 'PasterDream'
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.pasterdream.pasterdreammod.api.dimension.example.DimensionApiDemo'
     workingDir = project.projectDir
     standardOutput = System.out
@@ -155,7 +162,7 @@ tasks.register('runDimensionApiDemo', JavaExec) {
 tasks.register('generateDimensionTestJsons', JavaExec) {
     description = '生成维度 API 测试 JSON 文件到 resources 目录'
     group = 'PasterDream'
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.pasterdream.pasterdreammod.api.dimension.example.DimensionJsonGenerator'
     workingDir = project.projectDir
     standardOutput = System.out
@@ -166,7 +173,7 @@ tasks.register('generateDimensionTestJsons', JavaExec) {
 tasks.register('runParticleApiTest', JavaExec) {
     description = '运行 ParticleAPI 测试，验证粒子 API 核心功能'
     group = 'PasterDream'
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.pasterdream.pasterdreammod.test.ParticleApiTestRunner'
     workingDir = project.projectDir
     standardOutput = System.out
@@ -175,7 +182,7 @@ tasks.register('runParticleApiTest', JavaExec) {
 tasks.register('runEntityApiTest', JavaExec) {
     description = '运行 EntityAPI 测试，验证实体 API 核心功能'
     group = 'PasterDream'
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.pasterdream.pasterdreammod.test.EntityApiTestRunner'
     workingDir = project.projectDir
     standardOutput = System.out
@@ -184,7 +191,7 @@ tasks.register('runEntityApiTest', JavaExec) {
 tasks.register('runRuinApiTest', JavaExec) {
     description = '运行 RuinAPI 测试，验证自定义遗迹 API 核心功能'
     group = 'PasterDream'
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.pasterdream.pasterdreammod.test.RuinApiTestRunner'
     workingDir = project.projectDir
     standardOutput = System.out
@@ -193,7 +200,7 @@ tasks.register('runRuinApiTest', JavaExec) {
 tasks.register('runAllApiTests', JavaExec) {
     description = '运行所有 API 测试（ParticleAPI + EntityAPI + RuinAPI）'
     group = 'PasterDream'
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.pasterdream.pasterdreammod.test.RunAllApiTests'
     workingDir = project.projectDir
     standardOutput = System.out

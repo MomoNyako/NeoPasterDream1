@@ -1,10 +1,16 @@
 package com.pasterdream.pasterdreammod.api.ruin.builder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.pasterdream.pasterdreammod.api.PasterDreamAPI;
 import com.pasterdream.pasterdreammod.api.ruin.RuinResult;
-import com.pasterdream.pasterdreammod.api.ruin.gen.StructureSetGenerator;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * 结构集构建器 —— 采用 Builder 模式链式配置结构集和 JSON 资源文件生成
@@ -34,10 +40,11 @@ import java.io.IOException;
  */
 public class StructureSetBuilder {
 
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
     private final String modId;
     private final String setName;
     private final String ruinName;
-    private final StructureSetGenerator setGenerator;
 
     /** 间距 */
     private int spacing;
@@ -64,7 +71,6 @@ public class StructureSetBuilder {
         this.ruinName = ruinName;
         this.setName = setName;
         PasterDreamAPI.LOGGER.debug("[StructureSetBuilder] 创建结构集构建器: modId={}, ruin={}, setName={}", modId, ruinName, setName);
-        this.setGenerator = new StructureSetGenerator(modId, setName);
         this.spacing = 32;
         this.separation = 8;
         this.salt = 0;
@@ -180,40 +186,31 @@ public class StructureSetBuilder {
      * @throws RuntimeException      如果 JSON 文件写入失败
      */
 public RuinResult build() {
-        PasterDreamAPI.LOGGER.info("[StructureSetBuilder] ===== 开始构建结构集: {} =====", setName);
-        PasterDreamAPI.LOGGER.info("[StructureSetBuilder]   配置: ruin={}, spacing={}, separation={}, salt={}, placementType={}",
+        PasterDreamAPI.LOGGER.debug("[StructureSetBuilder] ===== 开始构建结构集: {} =====", setName);
+        PasterDreamAPI.LOGGER.debug("[StructureSetBuilder]   配置: ruin={}, spacing={}, separation={}, salt={}, placementType={}",
                 ruinName, spacing, separation, salt, placementType);
 
         // 1. 查找关联的 RuinResult
-        RuinResult result = com.pasterdream.pasterdreammod.api.ruin.RuinAPI.getRuin(ruinName);
-        if (result == null) {
+        RuinResult result = com.pasterdream.pasterdreammod.api.ruin.RuinAPI.getRuin(ruinName).orElseThrow(() -> {
             PasterDreamAPI.LOGGER.error("[StructureSetBuilder] ❌ 构建失败 [{}]: 找不到关联的结构 [{}]，请先调用 RuinBuilder.build()",
                     setName, ruinName);
-            throw new IllegalStateException(
-                    "StructureSetBuilder[" + setName + "]: 找不到关联的结构 [" + ruinName + "]，请先调用 RuinBuilder.build()"
+            return new IllegalStateException(
+                    "StructureSetBuilder[" + setName + "]: 找不到结构 [" + ruinName + "]，请先调用 RuinBuilder.build()"
             );
-        }
+        });
 
-        // 2. 配置 StructureSetGenerator
-        String structureId = modId + ":" + ruinName;
-        setGenerator.structureId(structureId);
-        setGenerator.placementType(placementType);
-        setGenerator.spacing(spacing);
-        setGenerator.separation(separation);
-        setGenerator.salt(salt);
-
-        // 3. 生成 JSON 资源文件
+        // 2. 生成 JSON 资源文件
         if (generateJsonFiles) {
             try {
-                PasterDreamAPI.LOGGER.info("[StructureSetBuilder] 生成结构集 JSON: data/{}/worldgen/structure_set/{}.json", modId, setName);
-                setGenerator.saveToFile(basePath);
-                PasterDreamAPI.LOGGER.info("[StructureSetBuilder] ✅ 结构集 JSON 生成完成: {}", setName);
+                PasterDreamAPI.LOGGER.debug("[StructureSetBuilder] 生成结构集 JSON: data/{}/worldgen/structure_set/{}.json", modId, setName);
+                saveStructureSetJson();
+                PasterDreamAPI.LOGGER.debug("[StructureSetBuilder] ✅ 结构集 JSON 生成完成: {}", setName);
             } catch (IOException e) {
                 PasterDreamAPI.LOGGER.error("[StructureSetBuilder] ❌ 无法生成结构集 JSON [{}]: {}", setName, e.getMessage(), e);
                 throw new RuntimeException("StructureSetBuilder: 无法生成结构集资源文件 [" + setName + "]", e);
             }
         } else {
-            PasterDreamAPI.LOGGER.info("[StructureSetBuilder] ⏭️ 跳过 JSON 文件生成: {} (generateJson=false)", setName);
+            PasterDreamAPI.LOGGER.debug("[StructureSetBuilder] ⏭️ 跳过 JSON 文件生成: {} (generateJson=false)", setName);
         }
 
         // 4. 创建新的 RuinResult（包含结构集 Key）并缓存
@@ -222,8 +219,40 @@ public RuinResult build() {
                 ruinName, updatedResult.structureKey(), updatedResult.setKey());
         com.pasterdream.pasterdreammod.api.ruin.RuinAPI.cacheRuin(updatedResult);
 
-        PasterDreamAPI.LOGGER.info("[StructureSetBuilder] ✅ 结构集构建完成: {} | spacing={}, separation={}, salt={}",
+        PasterDreamAPI.LOGGER.debug("[StructureSetBuilder] ✅ 结构集构建完成: {} | spacing={}, separation={}, salt={}",
                 setName, spacing, separation, salt);
         return updatedResult;
+    }
+
+    /**
+     * 生成并保存结构集 JSON 文件
+     * <p>
+     * 目标路径：{@code {basePath}/data/{modId}/worldgen/structure_set/{setName}.json}
+     *
+     * @throws IOException 如果文件写入失败
+     */
+    private void saveStructureSetJson() throws IOException {
+        JsonObject root = new JsonObject();
+
+        JsonObject structuresObj = new JsonObject();
+        structuresObj.addProperty(modId + ":" + ruinName, 1);
+        root.add("structures", structuresObj);
+
+        JsonObject placement = new JsonObject();
+        placement.addProperty("type", placementType);
+        placement.addProperty("spacing", spacing);
+        placement.addProperty("separation", separation);
+        placement.addProperty("salt", salt);
+        root.add("placement", placement);
+
+        Path outputDir = Paths.get(basePath, "data", modId, "worldgen", "structure_set");
+        Files.createDirectories(outputDir);
+
+        Path outputFile = outputDir.resolve(setName + ".json");
+        try (FileWriter writer = new FileWriter(outputFile.toFile())) {
+            GSON.toJson(root, writer);
+        }
+
+        PasterDreamAPI.LOGGER.debug("[StructureSetBuilder] ✅ 已生成 structure_set JSON → {}", outputFile);
     }
 }
